@@ -113,7 +113,8 @@ var SpotifyWebApi = (function() {
           try {
             data = req.responseText ? JSON.parse(req.responseText) : '';
           } catch (e) {
-            console.error(e);
+            // Some endpoints return non-JSON (e.g. 204 No Content)
+            data = '';
           }
 
           if (req.status >= 200 && req.status < 300) {

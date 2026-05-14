@@ -9,6 +9,7 @@ var spotifyHandler = {
 	lastTrackId: "null2",
 	lastQueueId: "null2",
 	lastPlaybackStatus: {},
+	likeCheckDisabled: false,
 
 	clientId: "958af218b7f249d38baf29604b851d57",
 
@@ -251,12 +252,15 @@ var spotifyHandler = {
 						spotifyHandler.dom.playPauseButton.innerHTML = "&#xe038;";
 					}
 
-					if (!data.item.is_local) {
+					if (!data.item.is_local && !spotifyHandler.likeCheckDisabled) {
 						spotifyHandler.dom.likeButton.disabled = false;
 						spotifyHandler.dom.likeButton.style.display = "inline-block";
 						spotifyHandler.api.containsMySavedTracks([data.item.id], {}, function(err, data) {
 							if (err) {
-								console.error(err);
+								// Disable future checks and hide the like button
+								spotifyHandler.likeCheckDisabled = true;
+								spotifyHandler.dom.likeButton.disabled = true;
+								spotifyHandler.dom.likeButton.style.display = "none";
 							}
 							else if (data[0]) {
 								spotifyHandler.dom.likeButton.innerHTML = "&#xe87d;";
@@ -462,7 +466,9 @@ var spotifyHandler = {
 			}
 			else {
 				spotifyHandler.dom.queueButton.disabled = true;
-				console.log("Queue cannot be retrieved for type " + type);
+				if (type != null) {
+					console.log("Queue cannot be retrieved for type " + type);
+				}
 			}
 		}
 		else {
@@ -474,7 +480,7 @@ var spotifyHandler = {
 		spotifyHandler.fetchingQueue = false;
 		spotifyHandler.dom.queueButton.disabled = false;
 		if (err) {
-			console.error(err);
+			// Silently handle - queue just won't be available
 		}
 		else {
 			console.log("Queue retrieved", data);
