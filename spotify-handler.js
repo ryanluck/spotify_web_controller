@@ -10,14 +10,107 @@ var spotifyHandler = {
 	lastQueueId: "null2",
 	lastPlaybackStatus: {},
 
+	clientId: "958af218b7f249d38baf29604b851d57",
+
+	generateCodeVerifier: function() {
+		var array = new Uint8Array(64);
+		window.crypto.getRandomValues(array);
+		return btoa(String.fromCharCode.apply(null, array))
+			.replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+	},
+
+	generateCodeChallenge: function(verifier) {
+		var encoder = new TextEncoder();
+		var data = encoder.encode(verifier);
+		return window.crypto.subtle.digest('SHA-256', data).then(function(digest) {
+			return btoa(String.fromCharCode.apply(null, new Uint8Array(digest)))
+				.replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+		});
+	},
+
 	signIn: function() {
-		window.location.href = "https://accounts.spotify.com/authorize?client_id=44219fb334174bc6b2c634d8f9e4f6eb&response_type=token&redirect_uri="+encodeURIComponent(window.location.origin + window.location.pathname)+"&scope="+spotifyHandler.scopes.join("%20")+"&show_dialog=false&state="+state;
+		var codeVerifier = spotifyHandler.generateCodeVerifier();
+		sessionStorage.setItem("spotify_code_verifier", codeVerifier);
+		var redirectUri = window.location.origin + window.location.pathname;
+		spotifyHandler.generateCodeChallenge(codeVerifier).then(function(codeChallenge) {
+			window.location.href = "https://accounts.spotify.com/authorize?client_id="+spotifyHandler.clientId+"&response_type=code&redirect_uri="+encodeURIComponent(redirectUri)+"&scope="+spotifyHandler.scopes.join("%20")+"&show_dialog=false&state="+state+"&code_challenge_method=S256&code_challenge="+codeChallenge;
+		});
+	},
+
+	exchangeCodeForToken: function(code, callback) {
+		var codeVerifier = sessionStorage.getItem("spotify_code_verifier");
+		if (!codeVerifier) {
+			callback("No code verifier found", null);
+			return;
+		}
+		var body = new URLSearchParams({
+			grant_type: "authorization_code",
+			code: code,
+			redirect_uri: window.location.origin + window.location.pathname,
+			client_id: spotifyHandler.clientId,
+			code_verifier: codeVerifier
+		});
+		fetch("https://accounts.spotify.com/api/token", {
+			method: "POST",
+			headers: { "Content-Type": "application/x-www-form-urlencoded" },
+			body: body.toString()
+		}).then(function(response) {
+			return response.json();
+		}).then(function(data) {
+			if (data.access_token) {
+				sessionStorage.removeItem("spotify_code_verifier");
+				callback(null, data);
+			} else {
+				callback(data.error || "Token exchange failed", null);
+			}
+		}).catch(function(err) {
+			callback(err, null);
+		});
+	},
+
+	refreshAccessToken: function() {
+		var refreshToken = getCookie("sprt");
+		if (!refreshToken) {
+			console.warn("No refresh token available, redirecting to sign in...");
+			window.location.href = window.location.origin + window.location.pathname;
+			return;
+		}
+		var body = new URLSearchParams({
+			grant_type: "refresh_token",
+			refresh_token: refreshToken,
+			client_id: spotifyHandler.clientId
+		});
+		fetch("https://accounts.spotify.com/api/token", {
+			method: "POST",
+			headers: { "Content-Type": "application/x-www-form-urlencoded" },
+			body: body.toString()
+		}).then(function(response) {
+			return response.json();
+		}).then(function(data) {
+			if (data.access_token) {
+				setCookie("spat", data.access_token);
+				spotifyHandler.expires = new Date().getTime() + (parseInt(data.expires_in) * 1000);
+				setCookie("spex", spotifyHandler.expires);
+				spotifyHandler.api.setAccessToken(data.access_token);
+				if (data.refresh_token) {
+					setCookie("sprt", data.refresh_token);
+				}
+			} else {
+				console.error("Failed to refresh token", data);
+				deleteCookie("spat");
+				deleteCookie("spex");
+				deleteCookie("sprt");
+				window.location.href = window.location.origin + window.location.pathname;
+			}
+		}).catch(function(err) {
+			console.error("Error refreshing token", err);
+		});
 	},
 
 	checkAccessToken: function() {
 		if ((new Date().getTime() + 25000) >= spotifyHandler.expires) {
-			console.warn("Spotify Access Token has expired! Refreshing page to refresh the access token...");
-			window.location.href = window.location.origin + window.location.pathname;
+			console.warn("Spotify Access Token is about to expire! Refreshing...");
+			spotifyHandler.refreshAccessToken();
 		}
 	},
 
@@ -810,59 +903,76 @@ var spotifyHandler = {
 			navigator.mediaSession.playbackState = "none";
 		}
 
-		if (window.location.hash.length > 0)
-		{
-			var hash = {};
-			var tempHash = window.location.hash.substring(1).split("&");
-			window.location.hash = "";
-			for (var i = 0; i < tempHash.length; i++) {
-				hash[tempHash[i].split("=")[0]] = tempHash[i].split("=")[1];
-			}
-			if ("access_token" in hash && parseInt(hash["state"]) == state) {
-				if (getCookie("spat") != hash["access_token"]) {
-					setCookie("spat", hash["access_token"]);
-					spotifyHandler.expires = new Date().getTime() + (parseInt(hash["expires_in"]) * 1000);
-					setCookie("spex", spotifyHandler.expires);
-				}
-				else {
-					spotifyHandler.expires = parseInt(getCookie("spex"));
-				}
-				setInterval(spotifyHandler.checkAccessToken, 1000);
-				setInterval(spotifyHandler.refreshDevices, 5000);
-				setInterval(spotifyHandler.setCurrentlyPlaying, 1000);
-				setTimeout(function() {
-					setInterval(function() {
-						if (spotifyHandler.lastPlaybackStatus.is_playing) {
-							progressBar.setValue(((spotifyHandler.lastPlaybackStatus.progress_ms + 500) / spotifyHandler.lastPlaybackStatus.item.duration_ms) * 100);
-						}
-					}, 1000);
-				}, 500);
-				spotifyHandler.api.setAccessToken(hash["access_token"]);
-				pageHandler.showPage("playerpage");
-				spotifyHandler.setCurrentlyPlaying();
-				spotifyHandler.refreshDevices();
-				spotifyHandler.loadLibrary();
-			}
-			else if ("error" in hash && parseInt(hash["state"]) == state) {
-				if (hash["error"] == "access_denied") {
+		var urlParams = new URLSearchParams(window.location.search);
+		var code = urlParams.get("code");
+		var urlState = urlParams.get("state");
+		var urlError = urlParams.get("error");
 
+		if (code && parseInt(urlState) == state) {
+			// Clean the URL
+			window.history.replaceState({}, document.title, window.location.pathname);
+			// Exchange authorization code for access token
+			spotifyHandler.exchangeCodeForToken(code, function(err, data) {
+				if (err) {
+					alert("An error occurred exchanging the authorization code: " + err);
+					pageHandler.showPage("signinpage");
+					return;
 				}
-				else {
-					alert("An error occurred connecting to your Spotify account: " + hash["error"]);
+				setCookie("spat", data.access_token);
+				spotifyHandler.expires = new Date().getTime() + (parseInt(data.expires_in) * 1000);
+				setCookie("spex", spotifyHandler.expires);
+				if (data.refresh_token) {
+					setCookie("sprt", data.refresh_token);
 				}
-				pageHandler.showPage("signinpage");
-			}
-			else {
-				alert("Something went wrong connecting your Spotify account. Please try again.");
-				pageHandler.showPage("signinpage");
-			}
+				spotifyHandler.api.setAccessToken(data.access_token);
+				spotifyHandler.startPlayback();
+			});
 		}
-		else if (getCookie("spat") != null) {
-			console.log("No hash present, but we might be able to sign in automatically, since a previous access token was found.");
-			spotifyHandler.signIn();
+		else if (urlError && parseInt(urlState) == state) {
+			if (urlError != "access_denied") {
+				alert("An error occurred connecting to your Spotify account: " + urlError);
+			}
+			pageHandler.showPage("signinpage");
+		}
+		else if (getCookie("spat") != null && getCookie("spex") != null) {
+			spotifyHandler.expires = parseInt(getCookie("spex"));
+			if (new Date().getTime() < spotifyHandler.expires) {
+				spotifyHandler.api.setAccessToken(getCookie("spat"));
+				spotifyHandler.startPlayback();
+			} else if (getCookie("sprt") != null) {
+				// Token expired but we have a refresh token
+				spotifyHandler.refreshAccessToken();
+				setTimeout(function() {
+					if (getCookie("spat")) {
+						spotifyHandler.api.setAccessToken(getCookie("spat"));
+						spotifyHandler.startPlayback();
+					} else {
+						pageHandler.showPage("signinpage");
+					}
+				}, 1500);
+			} else {
+				pageHandler.showPage("signinpage");
+			}
 		}
 		else {
 			pageHandler.showPage('signinpage');
 		}
+	},
+
+	startPlayback: function() {
+		setInterval(spotifyHandler.checkAccessToken, 30000);
+		setInterval(spotifyHandler.refreshDevices, 5000);
+		setInterval(spotifyHandler.setCurrentlyPlaying, 1000);
+		setTimeout(function() {
+			setInterval(function() {
+				if (spotifyHandler.lastPlaybackStatus.is_playing) {
+					progressBar.setValue(((spotifyHandler.lastPlaybackStatus.progress_ms + 500) / spotifyHandler.lastPlaybackStatus.item.duration_ms) * 100);
+				}
+			}, 1000);
+		}, 500);
+		pageHandler.showPage("playerpage");
+		spotifyHandler.setCurrentlyPlaying();
+		spotifyHandler.refreshDevices();
+		spotifyHandler.loadLibrary();
 	}
 };
