@@ -12,6 +12,7 @@ var spotifyHandler = {
 	likeCheckDisabled: false,
 	webPlayer: null,
 	webPlayerDeviceId: null,
+	webPlayerActivated: false,
 
 	clientId: "958af218b7f249d38baf29604b851d57",
 
@@ -312,15 +313,20 @@ var spotifyHandler = {
 					}
 				}
 				else {
-					console.log("No instances of Spotify found to control.");
 					if (spotifyHandler.lastTrackId != "null2") {
 						setTimeout(function() {
 							spotifyHandler.refreshDevices();
 						}, 500);
 					}
-					if (pageHandler.shown != "discoverpage") {
+					// If web player is ready, transfer playback to it
+					if (spotifyHandler.webPlayerDeviceId && !spotifyHandler.webPlayerActivated) {
+						spotifyHandler.webPlayerActivated = true;
+						spotifyHandler.transferPlayback(spotifyHandler.webPlayerDeviceId);
+					} else if (spotifyHandler.webPlayerActivated && pageHandler.shown != "playerpage") {
+						// Only show discover page if web player already tried and we still have no playback
 						pageHandler.showPage("discoverpage");
 					}
+					// Otherwise stay on current page while waiting for SDK
 				}
 			});
 		}
@@ -978,6 +984,15 @@ var spotifyHandler = {
 				}
 			}, 1000);
 		}, 500);
+		// If web player hasn't connected after 5 seconds, show discover page as fallback
+		setTimeout(function() {
+			if (!spotifyHandler.webPlayerDeviceId && !spotifyHandler.webPlayerActivated) {
+				spotifyHandler.webPlayerActivated = true; // prevent further attempts
+				if (pageHandler.shown == "loadingpage") {
+					pageHandler.showPage("discoverpage");
+				}
+			}
+		}, 5000);
 		pageHandler.showPage("playerpage");
 		spotifyHandler.setCurrentlyPlaying();
 		spotifyHandler.refreshDevices();
@@ -1016,6 +1031,16 @@ var spotifyHandler = {
 		player.addListener('ready', function(data) {
 			console.log('Web Playback SDK ready, device ID:', data.device_id);
 			spotifyHandler.webPlayerDeviceId = data.device_id;
+			// If nothing is currently playing, activate the web player
+			if (!spotifyHandler.lastPlaybackStatus.is_playing && !spotifyHandler.webPlayerActivated) {
+				spotifyHandler.webPlayerActivated = true;
+				spotifyHandler.api.transferMyPlayback([data.device_id], {play: false}, function(err) {
+					if (!err) {
+						console.log("Activated web player as default device");
+						pageHandler.showPage("playerpage");
+					}
+				});
+			}
 			// Refresh device list so the web player shows up
 			setTimeout(function() {
 				spotifyHandler.refreshDevices();
