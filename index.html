@@ -33,6 +33,11 @@
 		<script src="page-handler.js"></script>
 		<script src="vibrant.min.js"></script>
 		<script src="spotify-web-api.js"></script>
+		<script>
+			// Placeholder for the SDK callback - will be set properly after auth
+			window.onSpotifyWebPlaybackSDKReady = function() {};
+		</script>
+		<script src="https://sdk.scdn.co/spotify-player.js"></script>
 		<script src="spotify-handler.js"></script>
 	</head>
 	<body onload="spotifyHandler.init();">

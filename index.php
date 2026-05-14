@@ -43,6 +43,7 @@
 		<script><?php readfile("page-handler.js"); ?></script>
 		<script type="application/javascript" src="vibrant.min.js"></script>
 		<script type="application/javascript" src="spotify-web-api.js"></script>
+		<script type="application/javascript" src="https://sdk.scdn.co/spotify-player.js"></script>
 		<script><?php readfile("spotify-handler.js"); ?></script>
 	</head>
 	<body onload="spotifyHandler.init();">

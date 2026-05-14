@@ -1,5 +1,5 @@
 var spotifyHandler = {
-	scopes: ["user-read-private", "user-read-currently-playing", "user-read-playback-state", "user-modify-playback-state", "user-read-recently-played", "user-library-read", "user-library-modify", "playlist-read-private", "playlist-read-collaborative"],
+	scopes: ["user-read-private", "user-read-currently-playing", "user-read-playback-state", "user-modify-playback-state", "user-read-recently-played", "user-library-read", "user-library-modify", "playlist-read-private", "playlist-read-collaborative", "streaming"],
 	accessToken: null,
 	expires: -1,
 	api: new SpotifyWebApi(),
@@ -10,6 +10,8 @@ var spotifyHandler = {
 	lastQueueId: "null2",
 	lastPlaybackStatus: {},
 	likeCheckDisabled: false,
+	webPlayer: null,
+	webPlayerDeviceId: null,
 
 	clientId: "958af218b7f249d38baf29604b851d57",
 
@@ -980,5 +982,70 @@ var spotifyHandler = {
 		spotifyHandler.setCurrentlyPlaying();
 		spotifyHandler.refreshDevices();
 		spotifyHandler.loadLibrary();
+		spotifyHandler.initWebPlayer();
+	},
+
+	initWebPlayer: function() {
+		if (window.Spotify && window.Spotify.Player) {
+			spotifyHandler.createWebPlayer();
+		} else {
+			// SDK hasn't loaded yet or hasn't initialized Player
+			window.onSpotifyWebPlaybackSDKReady = function() {
+				spotifyHandler.createWebPlayer();
+			};
+		}
+	},
+
+	createWebPlayer: function() {
+		var player = new Spotify.Player({
+			name: 'Spotify Web Controller',
+			getOAuthToken: function(cb) {
+				// If token is still valid, use it; otherwise refresh first
+				if (new Date().getTime() < spotifyHandler.expires) {
+					cb(getCookie("spat"));
+				} else {
+					spotifyHandler.refreshAccessToken();
+					setTimeout(function() {
+						cb(getCookie("spat"));
+					}, 1500);
+				}
+			},
+			volume: 0.5
+		});
+
+		player.addListener('ready', function(data) {
+			console.log('Web Playback SDK ready, device ID:', data.device_id);
+			spotifyHandler.webPlayerDeviceId = data.device_id;
+			// Refresh device list so the web player shows up
+			setTimeout(function() {
+				spotifyHandler.refreshDevices();
+			}, 1000);
+		});
+
+		player.addListener('not_ready', function(data) {
+			console.log('Web Playback SDK device has gone offline:', data.device_id);
+			spotifyHandler.webPlayerDeviceId = null;
+		});
+
+		player.addListener('player_state_changed', function(state) {
+			if (state) {
+				spotifyHandler.setCurrentlyPlaying();
+			}
+		});
+
+		player.addListener('initialization_error', function(e) {
+			console.error('Web Playback SDK initialization error:', e.message);
+		});
+
+		player.addListener('authentication_error', function(e) {
+			console.error('Web Playback SDK authentication error:', e.message);
+		});
+
+		player.addListener('account_error', function(e) {
+			console.error('Web Playback SDK account error (Premium required):', e.message);
+		});
+
+		player.connect();
+		spotifyHandler.webPlayer = player;
 	}
 };
