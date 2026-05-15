@@ -1,11 +1,8 @@
 var progressBar = {
 	elemOuter: document.getElementById("progressbar-outer"),
 	elemInner: document.getElementById("progressbar"),
-	buffer: document.getElementById("bufferbar"),
 	value: 0,
-	bufferValue: 0,
 	hovering: false,
-	firstSeek: false,
 
 	setValue: function(value) {
 		if (value < 0) {
@@ -24,30 +21,9 @@ var progressBar = {
 		return progressBar.value;
 	},
 
-	setValueBuffer: function(value) {
-		if (value < 0) {
-			value = 0;
-		}
-		else if (value > 100) {
-			value = 100;
-		}
-
-		progressBar.bufferValue = value;
-		progressBar.buffer.style.width = value+"%";
-		progressBar.buffer.setAttribute("value", value);
-
-		if (value >= 100) {
-			progressBar.buffer.style.backgroundColor = "rgba(0,0,0,0)";
-		}
-		else {
-			progressBar.buffer.style.backgroundColor = null;
-		}
-	},
-
 	progressMouseEnter: function(e) {
 		e=e || window.event;
 		if ((e.which == 1 || e.type == "touchstart")) {
-			progressBar.firstSeek = true;
 			progressBar.hovering = true;
 			progressBar.elemInner.style.transition = "none";
 			progressBar.elemInner.classList.add("hovering");
