@@ -777,7 +777,7 @@ var spotifyHandler = {
 
 		// Web playback toggle
 		var webPlaybackCheckbox = document.getElementById("enable-web-playback");
-		webPlaybackCheckbox.checked = localStorage.getItem("spotify_web_playback") !== "false";
+		webPlaybackCheckbox.checked = localStorage.getItem("spotify_web_playback") === "true";
 		webPlaybackCheckbox.addEventListener("change", function() {
 			localStorage.setItem("spotify_web_playback", webPlaybackCheckbox.checked);
 			if (!webPlaybackCheckbox.checked && spotifyHandler.webPlayer) {
@@ -1017,7 +1017,7 @@ var spotifyHandler = {
 			}, 1000);
 		}, 500);
 		// If web playback is disabled or SDK hasn't connected after 5 seconds, show discover page
-		if (localStorage.getItem("spotify_web_playback") === "false") {
+		if (localStorage.getItem("spotify_web_playback") !== "true") {
 			spotifyHandler.webPlayerActivated = true;
 			pageHandler.showPage("discoverpage");
 		} else {
@@ -1070,7 +1070,7 @@ var spotifyHandler = {
 	},
 
 	initWebPlayer: function() {
-		if (localStorage.getItem("spotify_web_playback") === "false") {
+		if (localStorage.getItem("spotify_web_playback") !== "true") {
 			return;
 		}
 		if (window.Spotify && window.Spotify.Player) {
