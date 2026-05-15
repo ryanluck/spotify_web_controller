@@ -498,38 +498,36 @@ button[disabled] {
 	vertical-align: middle;
 }
 
-#volumebar-holder {
+#volume-popup {
 	position: absolute;
-	bottom: 8px;
-	left: 0px;
-	right: 0px;
-	padding: 8px;
+	right: 12px;
+	bottom: 52px;
+	background: #282828;
+	border-radius: 8px;
+	padding: 16px 8px;
+	height: 140px;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+	z-index: 20;
 }
 
-#volumebar-icon {
-	display: inline-block;
-	vertical-align: middle;
-	font-size: 24px;
-	text-align: center;
-	padding: 8px 0px;
-	width: 40px;
+#volume-popup.hidden {
+	display: none;
 }
 
 #volumebar {
-	display: inline-block;
-	vertical-align: middle;
 	appearance: none;
-	-webkit-appearance: none;
-	-moz-appearance: none;
-	width: 80%;
-	width: calc(100% - 64px);
-	width: -webkit-calc(100% - 64px);
-	width: -moz-calc(100% - 64px);
-	height: 4px;
+	-webkit-appearance: slider-vertical;
+	writing-mode: vertical-lr;
+	direction: rtl;
+	width: 4px;
+	height: 120px;
 	border-radius: 2px;
 	outline: none;
 	background-color: #353942;
-	background: linear-gradient(to right, #1DB954 0%, #1DB954 50%, #353942 50%, #353942 100%);
+	background: linear-gradient(to top, #1DB954 0%, #1DB954 50%, #353942 50%, #353942 100%);
 }
 
 #volumebar::-webkit-slider-thumb {
@@ -548,6 +546,11 @@ button[disabled] {
 	border-radius: 7px;
 	background: #FFFFFF;
 	cursor: pointer;
+}
+
+#volume-button {
+	float: right;
+	margin-right: 8px;
 }
 
 .close-button {

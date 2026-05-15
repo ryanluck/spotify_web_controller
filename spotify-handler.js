@@ -12,6 +12,7 @@ var spotifyHandler = {
 	webPlayerDeviceId: null,
 	webPlayerActivated: false,
 	changingVolume: false,
+	volumeCooldown: false,
 
 	clientId: "958af218b7f249d38baf29604b851d57",
 
@@ -227,7 +228,9 @@ var spotifyHandler = {
 
 					if (data.device.volume_percent != null) {
 						spotifyHandler.dom.volumebar.disabled = false;
-						spotifyHandler.setVolume(data.device.volume_percent, true);
+						if (!spotifyHandler.changingVolume && !spotifyHandler.volumeCooldown) {
+							spotifyHandler.setVolume(data.device.volume_percent, true);
+						}
 					}
 					else {
 						spotifyHandler.dom.volumebar.disabled = true;
@@ -385,12 +388,17 @@ var spotifyHandler = {
 	},
 
 	setVolume: function(newVolume, volumebarOnly) {
-		spotifyHandler.dom.volumebar.style.background = 'linear-gradient(to right, #1DB954 0%, #1DB954 '+newVolume+'%, #353942 '+newVolume+'%, #353942 100%)';
+		spotifyHandler.dom.volumebar.style.background = 'linear-gradient(to top, #1DB954 0%, #1DB954 '+newVolume+'%, #353942 '+newVolume+'%, #353942 100%)';
 		if (spotifyHandler.dom.volumebar.value != newVolume && !spotifyHandler.changingVolume) {
 			spotifyHandler.dom.volumebar.value = newVolume;
 		}
 		if (!volumebarOnly) {
 			spotifyHandler.api.setVolume(newVolume, {});
+			spotifyHandler.volumeCooldown = true;
+			clearTimeout(spotifyHandler.volumeCooldownTimer);
+			spotifyHandler.volumeCooldownTimer = setTimeout(function() {
+				spotifyHandler.volumeCooldown = false;
+			}, 5000);
 		}
 	},
 

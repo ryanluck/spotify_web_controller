@@ -81,9 +81,6 @@
 				<div class="selectdevice">Select a device</div>
 				<ul id="devicelist"></ul>
 			</div>
-			<div id="volumebar-holder">
-				<div id="volumebar-icon" class="material-icons">&#xe050;</div><input id="volumebar" type="range" min="0" max="100" value="50" step="1" title="Volume" />
-			</div>
 			<button id="devicespageclose-button" class="material-icons close-button" onclick="pageHandler.showPage('playerpage');" title="Close">&#xe5cd;</button>
 		</div>
 		<div class="page" id="queuepage">
@@ -147,7 +144,11 @@
 				</div>
 				<div id="bottombar">
 					<button class="material-icons bar-button" id="devices-button" title="Available devices" data-curdevice="">&#xe32e;</button>
+					<button class="material-icons bar-button" id="volume-button" title="Volume">&#xe050;</button>
 					<button class="material-icons bar-button" id="queue-button" title="Queue">&#xe05f;</button>
+				</div>
+				<div id="volume-popup" class="hidden">
+					<input id="volumebar" type="range" min="0" max="100" value="50" step="1" title="Volume" orient="vertical" />
 				</div>
 			</div>
 		</div>
@@ -156,6 +157,10 @@
 			window.onbeforeunload = function(e) {
 				pageHandler.showPage("loadingpage");
 			};
+			document.getElementById("volume-button").addEventListener("click", function() {
+				var popup = document.getElementById("volume-popup");
+				popup.classList.toggle("hidden");
+			});
 			document.getElementById("volumebar").addEventListener("input", function(event) {
 				spotifyHandler.setVolume(event.target.value, true);
 			});
@@ -172,6 +177,14 @@
 			document.getElementById("volumebar").addEventListener("touchend", function(event) {
 				spotifyHandler.setVolume(event.target.value, false);
 				spotifyHandler.changingVolume = false;
+			});
+			// Close volume popup when clicking elsewhere
+			document.addEventListener("click", function(event) {
+				var popup = document.getElementById("volume-popup");
+				var btn = document.getElementById("volume-button");
+				if (!popup.contains(event.target) && event.target !== btn) {
+					popup.classList.add("hidden");
+				}
 			});
 		</script>
 	</body>
