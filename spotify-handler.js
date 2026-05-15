@@ -73,11 +73,12 @@ var spotifyHandler = {
 		});
 	},
 
-	refreshAccessToken: function() {
+	refreshAccessToken: function(callback) {
 		var refreshToken = getCookie("sprt");
 		if (!refreshToken) {
 			console.warn("No refresh token available, redirecting to sign in...");
-			window.location.href = window.location.origin + window.location.pathname;
+			if (callback) callback(false);
+			else window.location.href = window.location.origin + window.location.pathname;
 			return;
 		}
 		var body = new URLSearchParams({
@@ -100,15 +101,19 @@ var spotifyHandler = {
 				if (data.refresh_token) {
 					setCookie("sprt", data.refresh_token);
 				}
+				if (callback) callback(true);
 			} else {
 				console.error("Failed to refresh token", data);
 				deleteCookie("spat");
 				deleteCookie("spex");
 				deleteCookie("sprt");
-				window.location.href = window.location.origin + window.location.pathname;
+				if (callback) callback(false);
+				else window.location.href = window.location.origin + window.location.pathname;
 			}
 		}).catch(function(err) {
 			console.error("Error refreshing token", err);
+			// Network error — don't wipe cookies, just report failure
+			if (callback) callback(false);
 		});
 	},
 
@@ -943,15 +948,13 @@ var spotifyHandler = {
 				spotifyHandler.startPlayback();
 			} else if (getCookie("sprt") != null) {
 				// Token expired but we have a refresh token
-				spotifyHandler.refreshAccessToken();
-				setTimeout(function() {
-					if (getCookie("spat")) {
-						spotifyHandler.api.setAccessToken(getCookie("spat"));
+				spotifyHandler.refreshAccessToken(function(success) {
+					if (success) {
 						spotifyHandler.startPlayback();
 					} else {
 						pageHandler.showPage("signinpage");
 					}
-				}, 1500);
+				});
 			} else {
 				pageHandler.showPage("signinpage");
 			}
@@ -1010,10 +1013,9 @@ var spotifyHandler = {
 				if (new Date().getTime() < spotifyHandler.expires) {
 					cb(getCookie("spat"));
 				} else {
-					spotifyHandler.refreshAccessToken();
-					setTimeout(function() {
+					spotifyHandler.refreshAccessToken(function(success) {
 						cb(getCookie("spat"));
-					}, 1500);
+					});
 				}
 			},
 			volume: 0.5
