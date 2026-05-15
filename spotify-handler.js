@@ -775,6 +775,19 @@ var spotifyHandler = {
 		// Capability checks
 		spotifyHandler.runCapabilityChecks();
 
+		// Web playback toggle
+		var webPlaybackCheckbox = document.getElementById("enable-web-playback");
+		webPlaybackCheckbox.checked = localStorage.getItem("spotify_web_playback") !== "false";
+		webPlaybackCheckbox.addEventListener("change", function() {
+			localStorage.setItem("spotify_web_playback", webPlaybackCheckbox.checked);
+			if (!webPlaybackCheckbox.checked && spotifyHandler.webPlayer) {
+				spotifyHandler.webPlayer.disconnect();
+				spotifyHandler.webPlayerDeviceId = null;
+			} else if (webPlaybackCheckbox.checked && !spotifyHandler.webPlayer) {
+				spotifyHandler.initWebPlayer();
+			}
+		});
+
 		window.addEventListener("resize", spotifyHandler.fixArtSize);
 		spotifyHandler.dom.artwork.addEventListener("loadstart", function(event) {
 			spotifyHandler.dom.playerPage.style.background = null;
@@ -1003,15 +1016,20 @@ var spotifyHandler = {
 				}
 			}, 1000);
 		}, 500);
-		// If web player hasn't connected after 5 seconds, show discover page as fallback
-		setTimeout(function() {
-			if (!spotifyHandler.webPlayerDeviceId && !spotifyHandler.webPlayerActivated) {
-				spotifyHandler.webPlayerActivated = true; // prevent further attempts
-				if (pageHandler.shown == "loadingpage") {
-					pageHandler.showPage("discoverpage");
+		// If web playback is disabled or SDK hasn't connected after 5 seconds, show discover page
+		if (localStorage.getItem("spotify_web_playback") === "false") {
+			spotifyHandler.webPlayerActivated = true;
+			pageHandler.showPage("discoverpage");
+		} else {
+			setTimeout(function() {
+				if (!spotifyHandler.webPlayerDeviceId && !spotifyHandler.webPlayerActivated) {
+					spotifyHandler.webPlayerActivated = true;
+					if (pageHandler.shown == "playerpage" && spotifyHandler.lastTrackId == "null2") {
+						pageHandler.showPage("discoverpage");
+					}
 				}
-			}
-		}, 5000);
+			}, 5000);
+		}
 		pageHandler.showPage("playerpage");
 		spotifyHandler.setCurrentlyPlaying();
 		spotifyHandler.refreshDevices();
@@ -1052,6 +1070,9 @@ var spotifyHandler = {
 	},
 
 	initWebPlayer: function() {
+		if (localStorage.getItem("spotify_web_playback") === "false") {
+			return;
+		}
 		if (window.Spotify && window.Spotify.Player) {
 			spotifyHandler.createWebPlayer();
 		} else {
