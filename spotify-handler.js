@@ -656,6 +656,7 @@ var spotifyHandler = {
 
 	searchReq: null,
 	searchDebounce: null,
+	searchRetried: false,
 	search: function(q) {
 		if (spotifyHandler.searchReq != null) {
 			spotifyHandler.searchReq.abort();
@@ -664,41 +665,42 @@ var spotifyHandler = {
 		{
 			spotifyHandler.searchReq = spotifyHandler.api.search(q.trim(), ["track", "artist", "album", "playlist"], {offset: 0, limit: 10});
 			spotifyHandler.searchReq.then(function(data) {
+				spotifyHandler.searchRetried = false;
 				console.log("Search results are in", data);
 				spotifyHandler.dom.search.innerHTML = "";
 				var anyResults = false;
-				if (data.tracks.items.length > 0) {
-					spotifyHandler.dom.search.appendChild(spotifyHandler.createDividerItem("Tracks"));
-					for (var i = 0; i < data.tracks.items.length; i++) {
-						if (data.tracks.items[i]) {
-							spotifyHandler.dom.search.appendChild(spotifyHandler.createTrackItem(data.tracks.items[i], true, false, true));
-						}
-					}
-					anyResults = true;
-				}
+				// Determine result order based on relevance
+				var query = q.trim().toLowerCase();
+				var artistMatchesQuery = data.artists.items.length > 0 && data.artists.items[0] &&
+					data.artists.items[0].name.toLowerCase().indexOf(query) !== -1;
+
+				var sections = [];
 				if (data.artists.items.length > 0) {
-					spotifyHandler.dom.search.appendChild(spotifyHandler.createDividerItem("Artists"));
-					for (var i = 0; i < data.artists.items.length; i++) {
-						if (data.artists.items[i]) {
-							spotifyHandler.dom.search.appendChild(spotifyHandler.createArtistItem(data.artists.items[i]));
-						}
-					}
-					anyResults = true;
+					sections.push({type: "artists", label: "Artists", priority: artistMatchesQuery ? 0 : 2});
+				}
+				if (data.tracks.items.length > 0) {
+					sections.push({type: "tracks", label: "Tracks", priority: artistMatchesQuery ? 1 : 0});
 				}
 				if (data.albums.items.length > 0) {
-					spotifyHandler.dom.search.appendChild(spotifyHandler.createDividerItem("Albums"));
-					for (var i = 0; i < data.albums.items.length; i++) {
-						if (data.albums.items[i]) {
-							spotifyHandler.dom.search.appendChild(spotifyHandler.createPlaylistOrAlbumItem(data.albums.items[i], true));
-						}
-					}
-					anyResults = true;
+					sections.push({type: "albums", label: "Albums", priority: 3});
 				}
 				if (data.playlists.items.length > 0) {
-					spotifyHandler.dom.search.appendChild(spotifyHandler.createDividerItem("Playlists"));
-					for (var i = 0; i < data.playlists.items.length; i++) {
-						if (data.playlists.items[i]) {
-							spotifyHandler.dom.search.appendChild(spotifyHandler.createPlaylistOrAlbumItem(data.playlists.items[i], true));
+					sections.push({type: "playlists", label: "Playlists", priority: 4});
+				}
+				sections.sort(function(a, b) { return a.priority - b.priority; });
+
+				for (var s = 0; s < sections.length; s++) {
+					var section = sections[s];
+					spotifyHandler.dom.search.appendChild(spotifyHandler.createDividerItem(section.label));
+					var items = data[section.type].items;
+					for (var i = 0; i < items.length; i++) {
+						if (!items[i]) continue;
+						if (section.type === "tracks") {
+							spotifyHandler.dom.search.appendChild(spotifyHandler.createTrackItem(items[i], true, false, true));
+						} else if (section.type === "artists") {
+							spotifyHandler.dom.search.appendChild(spotifyHandler.createArtistItem(items[i]));
+						} else {
+							spotifyHandler.dom.search.appendChild(spotifyHandler.createPlaylistOrAlbumItem(items[i], true));
 						}
 					}
 					anyResults = true;
@@ -707,7 +709,13 @@ var spotifyHandler = {
 					spotifyHandler.dom.search.appendChild(spotifyHandler.createDividerItem("No results found for \""+stripTags(q.trim())+"\""));
 				}
 			}, function(err) {
-				// console.error(err);
+				// Retry once on server errors (502, 503)
+				if (err && err.status >= 500 && !spotifyHandler.searchRetried) {
+					spotifyHandler.searchRetried = true;
+					setTimeout(function() {
+						spotifyHandler.search(q);
+					}, 1000);
+				}
 			});
 		}
 		else {
