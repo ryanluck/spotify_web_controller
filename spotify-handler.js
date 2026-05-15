@@ -157,9 +157,9 @@ var spotifyHandler = {
 						}
 						spotifyHandler.dom.artist.innerHTML = stripTags(tempArtists);
 						if (data.context != null) {
+							spotifyHandler.dom.playingFrom.innerHTML = "Playing from";
 							switch (data.context.type) {
 								case "playlist": {
-									spotifyHandler.dom.playingFrom.innerHTML = "Playing from playlist";
 									spotifyHandler.api.getPlaylist(data.context.uri.split(":").pop(), {fields: "name,id"}, function(err, data) {
 										if (!err && data) {
 											spotifyHandler.dom.playingFromName.innerHTML = stripTags(data.name);
@@ -170,7 +170,6 @@ var spotifyHandler = {
 									break;
 								}
 								case "album": {
-									spotifyHandler.dom.playingFrom.innerHTML = "Playing from album";
 									spotifyHandler.api.getAlbum(data.context.uri.split(":").pop(), {}, function(err, data) {
 										if (!err && data) {
 											spotifyHandler.dom.playingFromName.innerHTML = stripTags(data.name);
@@ -181,7 +180,6 @@ var spotifyHandler = {
 									break;
 								}
 								case "artist": {
-									spotifyHandler.dom.playingFrom.innerHTML = "Playing from artist";
 									spotifyHandler.api.getArtist(data.context.uri.split(":").pop(), {}, function(err, data) {
 										if (!err && data) {
 											spotifyHandler.dom.playingFromName.innerHTML = stripTags(data.name);
