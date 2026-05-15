@@ -112,15 +112,15 @@
 			<h2 class="list-header">Settings</h2>
 			<div id="settings-holder">
 				<div class="settings-section">
-					<label class="settings-label" for="device-name-input">Device Name</label>
-					<input type="text" id="device-name-input" class="settings-input" placeholder="Spotify Web Controller" />
-					<button id="device-name-save" class="settings-save-btn">Save</button>
-				</div>
-				<div class="settings-section">
 					<label class="settings-label">
 						<input type="checkbox" id="enable-web-playback" /> Enable in-browser audio playback
 					</label>
 					<p class="settings-hint">Disable on low-memory devices to prevent crashes. The app will work as a remote controller only.</p>
+				</div>
+				<div class="settings-section" id="device-name-section" style="display: none;">
+					<label class="settings-label" for="device-name-input">Device Name</label>
+					<input type="text" id="device-name-input" class="settings-input" placeholder="Spotify Web Controller" />
+					<button id="device-name-save" class="settings-save-btn">Save</button>
 				</div>
 				<div class="settings-section">
 					<span class="settings-label">Playback Capabilities</span>

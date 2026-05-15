@@ -789,9 +789,12 @@ var spotifyHandler = {
 
 		// Web playback toggle
 		var webPlaybackCheckbox = document.getElementById("enable-web-playback");
+		var deviceNameSection = document.getElementById("device-name-section");
 		webPlaybackCheckbox.checked = localStorage.getItem("spotify_web_playback") === "true";
+		deviceNameSection.style.display = webPlaybackCheckbox.checked ? "block" : "none";
 		webPlaybackCheckbox.addEventListener("change", function() {
 			localStorage.setItem("spotify_web_playback", webPlaybackCheckbox.checked);
+			deviceNameSection.style.display = webPlaybackCheckbox.checked ? "block" : "none";
 			if (!webPlaybackCheckbox.checked && spotifyHandler.webPlayer) {
 				spotifyHandler.webPlayer.disconnect();
 				spotifyHandler.webPlayerDeviceId = null;
