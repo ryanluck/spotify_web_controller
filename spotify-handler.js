@@ -538,7 +538,7 @@ var spotifyHandler = {
 				}
 			});
 		}
-		if (pageHandler.shown == "searchpage") {
+		if (pageHandler.shown == "searchpage" || pageHandler.shown == "queuepage") {
 			pageHandler.showPage("playerpage");
 		}
 	},
