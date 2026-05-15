@@ -640,6 +640,16 @@ var spotifyHandler = {
 		return (playlistElem);
 	},
 
+	createArtistItem: function(artist) {
+		var artistElem = document.createElement("li");
+		artistElem.className = "queue-item";
+		artistElem.setAttribute("data-uri", artist.uri);
+		artistElem.setAttribute("onclick", "spotifyHandler.playContext(this.getAttribute('data-uri'), null);");
+		var imgSrc = (artist.images && artist.images.length > 0) ? artist.images[artist.images.length - 1].url : 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7';
+		artistElem.innerHTML = '<div class="queue-item-cover"><img src="'+imgSrc+'"></div><div class="queue-item-metadata"><div class="queue-item-name">'+stripTags(artist.name)+'</div><div class="queue-item-artist">Artist</div></div>';
+		return artistElem;
+	},
+
 	addPlaylists: function(data) {
 		for (var i = 0; i < data.length; i++) {
 			var tempData = data[i];
@@ -665,7 +675,7 @@ var spotifyHandler = {
 		}
 		if (q.trim() != "")
 		{
-			spotifyHandler.searchReq = spotifyHandler.api.search(q.trim(), ["track", "album", "playlist"], {offset: 0, limit: 10});
+			spotifyHandler.searchReq = spotifyHandler.api.search(q.trim(), ["track", "artist", "album", "playlist"], {offset: 0, limit: 10});
 			spotifyHandler.searchReq.then(function(data) {
 				console.log("Search results are in", data);
 				spotifyHandler.dom.search.innerHTML = "";
@@ -675,6 +685,15 @@ var spotifyHandler = {
 					for (var i = 0; i < data.tracks.items.length; i++) {
 						if (data.tracks.items[i]) {
 							spotifyHandler.dom.search.appendChild(spotifyHandler.createTrackItem(data.tracks.items[i], true, false));
+						}
+					}
+					anyResults = true;
+				}
+				if (data.artists.items.length > 0) {
+					spotifyHandler.dom.search.appendChild(spotifyHandler.createDividerItem("Artists"));
+					for (var i = 0; i < data.artists.items.length; i++) {
+						if (data.artists.items[i]) {
+							spotifyHandler.dom.search.appendChild(spotifyHandler.createArtistItem(data.artists.items[i]));
 						}
 					}
 					anyResults = true;
