@@ -13,6 +13,8 @@ var spotifyHandler = {
 	webPlayerActivated: false,
 	changingVolume: false,
 	volumeCooldown: false,
+	idleTimer: null,
+	idleDelay: 10000,
 
 	clientId: "958af218b7f249d38baf29604b851d57",
 	buildCommit: "__BUILD_COMMIT__",
@@ -329,6 +331,16 @@ var spotifyHandler = {
 				}
 			});
 		}
+	},
+
+	resetIdleTimer: function() {
+		spotifyHandler.dom.playerPage.classList.remove("idle");
+		clearTimeout(spotifyHandler.idleTimer);
+		spotifyHandler.idleTimer = setTimeout(function() {
+			if (pageHandler.shown == "playerpage") {
+				spotifyHandler.dom.playerPage.classList.add("idle");
+			}
+		}, spotifyHandler.idleDelay);
 	},
 
 	fixArtSize: function() {
@@ -993,6 +1005,12 @@ var spotifyHandler = {
 			navigator.mediaSession.setActionHandler('previoustrack', spotifyHandler.api.skipToPrevious);
 			navigator.mediaSession.playbackState = "none";
 		}
+
+		// Idle detection - hide controls after inactivity
+		spotifyHandler.resetIdleTimer();
+		['touchstart', 'mousedown', 'mousemove', 'keydown'].forEach(function(event) {
+			document.addEventListener(event, spotifyHandler.resetIdleTimer);
+		});
 
 		var urlParams = new URLSearchParams(window.location.search);
 		var code = urlParams.get("code");
