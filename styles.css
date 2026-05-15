@@ -531,7 +531,7 @@ button[disabled] {
 
 #volumebar {
 	appearance: none;
-	-webkit-appearance: slider-vertical;
+	-webkit-appearance: none;
 	writing-mode: vertical-lr;
 	direction: rtl;
 	width: 4px;
