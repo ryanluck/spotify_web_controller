@@ -770,6 +770,9 @@ var spotifyHandler = {
 			}
 		});
 
+		// Capability checks
+		spotifyHandler.runCapabilityChecks();
+
 		window.addEventListener("resize", spotifyHandler.fixArtSize);
 		spotifyHandler.dom.artwork.addEventListener("loadstart", function(event) {
 			spotifyHandler.dom.playerPage.style.background = null;
@@ -1012,6 +1015,38 @@ var spotifyHandler = {
 		spotifyHandler.refreshDevices();
 		spotifyHandler.loadLibrary();
 		spotifyHandler.initWebPlayer();
+	},
+
+	runCapabilityChecks: function() {
+		var checks = [
+			{ id: "cap-secure-context", pass: window.isSecureContext },
+			{ id: "cap-web-crypto", pass: !!(window.crypto && window.crypto.subtle) },
+			{ id: "cap-eme", pass: !!(navigator.requestMediaKeySystemAccess) },
+			{ id: "cap-sdk-connected", pass: !!spotifyHandler.webPlayerDeviceId }
+		];
+		checks.forEach(function(check) {
+			var el = document.getElementById(check.id);
+			if (check.pass) {
+				el.classList.add("cap-pass");
+				el.classList.remove("cap-fail");
+				el.querySelector(".cap-icon").innerHTML = "&#xe86c;"; // check circle
+			} else {
+				el.classList.add("cap-fail");
+				el.classList.remove("cap-pass");
+				el.querySelector(".cap-icon").innerHTML = "&#xe000;"; // error
+			}
+		});
+		// Re-check SDK connection after a delay (it may connect later)
+		if (!spotifyHandler.webPlayerDeviceId) {
+			setTimeout(function() {
+				var el = document.getElementById("cap-sdk-connected");
+				if (spotifyHandler.webPlayerDeviceId) {
+					el.classList.add("cap-pass");
+					el.classList.remove("cap-fail");
+					el.querySelector(".cap-icon").innerHTML = "&#xe86c;";
+				}
+			}, 5000);
+		}
 	},
 
 	initWebPlayer: function() {

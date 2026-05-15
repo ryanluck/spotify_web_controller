@@ -861,3 +861,30 @@ h2 {
 	color: #FFFFFF;
 	font-family: monospace;
 }
+
+.capability-list {
+	list-style: none;
+	padding: 0;
+	margin: 0;
+}
+
+.capability-list li {
+	padding: 8px 0;
+	font-size: 14px;
+	color: #B3B3B3;
+}
+
+.capability-list li.cap-pass {
+	color: #1DB954;
+}
+
+.capability-list li.cap-fail {
+	color: #e74c3c;
+}
+
+.cap-icon {
+	font-family: 'Material Icons';
+	font-size: 18px;
+	vertical-align: middle;
+	margin-right: 8px;
+}

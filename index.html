@@ -113,6 +113,15 @@
 					<input type="text" id="device-name-input" class="settings-input" placeholder="Spotify Web Controller" />
 					<button id="device-name-save" class="settings-save-btn">Save</button>
 				</div>
+				<div class="settings-section">
+					<span class="settings-label">Playback Capabilities</span>
+					<ul id="capability-checks" class="capability-list">
+						<li id="cap-secure-context"><span class="cap-icon">&#xe86c;</span> Secure context (HTTPS)</li>
+						<li id="cap-web-crypto"><span class="cap-icon">&#xe86c;</span> Web Crypto API</li>
+						<li id="cap-eme"><span class="cap-icon">&#xe86c;</span> Encrypted Media Extensions (DRM)</li>
+						<li id="cap-sdk-connected"><span class="cap-icon">&#xe86c;</span> Web Playback SDK connected</li>
+					</ul>
+				</div>
 				<div class="settings-section settings-info">
 					<span class="settings-label">Build</span>
 					<span id="settings-commit" class="settings-value"></span>
