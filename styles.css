@@ -271,8 +271,7 @@ p {
 	border-radius: inherit;
 	position: absolute;
 	left: 0;
-	transition: 0.5s;
-	transition-timing-function: linear;
+	transition: width 1s linear;
 }
 
 #progressbar-outer #barbackground {
