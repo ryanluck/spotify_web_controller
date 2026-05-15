@@ -60,10 +60,13 @@
 			<div style="display: table; width: 100%; height: 100%; position: fixed; top: 0px; left: 0px; right: 0px; bottom: 0px;">
 				<div style="display: table-cell; vertical-align: middle;">
 					<h2>Connecting to Spotify...</h2>
-					<p id="discover-disclaimer" class="disclaimer">Waiting for a Spotify device to become available. Open Spotify on any device or wait for the web player to connect.</p>
+					<p id="discover-disclaimer" class="disclaimer">Waiting for a Spotify device to become available. Open Spotify on any device or play on this device.</p>
+					<div id="play-on-this-device" class="discover-option">
+						<button id="this-device-btn" class="bigbutton" onclick="spotifyHandler.enableAndPlayOnThisDevice();">Play on this device</button>
+					</div>
 					<div id="discoverspinner" class="spinner"></div>
 					<div id="discoverlist-holder" style="display: none;">
-						<div class="selectdevice">Which device would you like to use?</div>
+						<div class="selectdevice">Or select another device:</div>
 						<ul id="discoverlist"></ul>
 					</div>
 				</div>

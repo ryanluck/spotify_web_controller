@@ -543,6 +543,18 @@ var spotifyHandler = {
 		}
 	},
 
+	enableAndPlayOnThisDevice: function() {
+		localStorage.setItem("spotify_web_playback", "true");
+		var checkbox = document.getElementById("enable-web-playback");
+		if (checkbox) checkbox.checked = true;
+		// Initialize the SDK and wait for it to connect
+		spotifyHandler.initWebPlayer();
+		// Show loading state
+		var btn = document.getElementById("this-device-btn");
+		btn.textContent = "Connecting...";
+		btn.disabled = true;
+	},
+
 	startPlaySession: function(deviceId) {
 		spotifyHandler.api.play({
 			device_id: deviceId
@@ -1101,9 +1113,16 @@ var spotifyHandler = {
 
 		player.addListener('ready', function(data) {
 			spotifyHandler.webPlayerDeviceId = data.device_id;
-			// If nothing is currently playing, activate the web player
-			if (!spotifyHandler.lastPlaybackStatus.is_playing && !spotifyHandler.webPlayerActivated) {
+			// Transfer playback to this device
+			if (!spotifyHandler.webPlayerActivated) {
 				spotifyHandler.webPlayerActivated = true;
+				spotifyHandler.api.transferMyPlayback([data.device_id], {play: false}, function(err) {
+					if (!err) {
+						pageHandler.showPage("playerpage");
+					}
+				});
+			} else if (pageHandler.shown == "discoverpage") {
+				// Enabled from discover page
 				spotifyHandler.api.transferMyPlayback([data.device_id], {play: false}, function(err) {
 					if (!err) {
 						pageHandler.showPage("playerpage");
