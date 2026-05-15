@@ -34,7 +34,7 @@ var spotifyHandler = {
 
 	signIn: function() {
 		var codeVerifier = spotifyHandler.generateCodeVerifier();
-		sessionStorage.setItem("spotify_code_verifier", codeVerifier);
+		localStorage.setItem("spotify_code_verifier", codeVerifier);
 		var redirectUri = window.location.origin + window.location.pathname;
 		spotifyHandler.generateCodeChallenge(codeVerifier).then(function(codeChallenge) {
 			window.location.href = "https://accounts.spotify.com/authorize?client_id="+spotifyHandler.clientId+"&response_type=code&redirect_uri="+encodeURIComponent(redirectUri)+"&scope="+spotifyHandler.scopes.join("%20")+"&show_dialog=false&state="+state+"&code_challenge_method=S256&code_challenge="+codeChallenge;
@@ -42,7 +42,7 @@ var spotifyHandler = {
 	},
 
 	exchangeCodeForToken: function(code, callback) {
-		var codeVerifier = sessionStorage.getItem("spotify_code_verifier");
+		var codeVerifier = localStorage.getItem("spotify_code_verifier");
 		if (!codeVerifier) {
 			callback("No code verifier found", null);
 			return;
@@ -62,7 +62,7 @@ var spotifyHandler = {
 			return response.json();
 		}).then(function(data) {
 			if (data.access_token) {
-				sessionStorage.removeItem("spotify_code_verifier");
+				localStorage.removeItem("spotify_code_verifier");
 				callback(null, data);
 			} else {
 				callback(data.error || "Token exchange failed", null);
@@ -925,6 +925,7 @@ var spotifyHandler = {
 					setCookie("sprt", data.refresh_token);
 				}
 				spotifyHandler.api.setAccessToken(data.access_token);
+				localStorage.removeItem("spotify_state");
 				spotifyHandler.startPlayback();
 			});
 		}

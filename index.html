@@ -20,13 +20,13 @@
 		<link rel="stylesheet" href="styles.css">
 		<script>
 			// Generate state for CSRF protection (128 bits of entropy)
-			if (!sessionStorage.getItem("spotify_state")) {
+			if (!localStorage.getItem("spotify_state")) {
 				var array = new Uint8Array(16);
 				window.crypto.getRandomValues(array);
 				var state = Array.from(array, function(b) { return b.toString(16).padStart(2, '0'); }).join('');
-				sessionStorage.setItem("spotify_state", state);
+				localStorage.setItem("spotify_state", state);
 			}
-			var state = sessionStorage.getItem("spotify_state");
+			var state = localStorage.getItem("spotify_state");
 		</script>
 		<script src="helpers.js"></script>
 		<script src="page-handler.js"></script>
