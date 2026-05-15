@@ -1053,15 +1053,22 @@ var spotifyHandler = {
 	},
 
 	runCapabilityChecks: function() {
+		var sdkDisabled = localStorage.getItem("spotify_web_playback") !== "true";
 		var checks = [
 			{ id: "cap-secure-context", pass: window.isSecureContext },
 			{ id: "cap-web-crypto", pass: !!(window.crypto && window.crypto.subtle) },
 			{ id: "cap-eme", pass: !!(navigator.requestMediaKeySystemAccess) },
-			{ id: "cap-sdk-connected", pass: !!spotifyHandler.webPlayerDeviceId }
+			{ id: "cap-sdk-connected", pass: !!spotifyHandler.webPlayerDeviceId, disabled: sdkDisabled }
 		];
 		checks.forEach(function(check) {
 			var el = document.getElementById(check.id);
-			if (check.pass) {
+			if (check.disabled) {
+				el.classList.remove("cap-pass");
+				el.classList.remove("cap-fail");
+				el.style.color = "#666";
+				el.querySelector(".cap-icon").innerHTML = "&#xe15b;"; // remove circle
+				el.innerHTML = el.innerHTML.replace(/(connected).*$/, '$1 (disabled)');
+			} else if (check.pass) {
 				el.classList.add("cap-pass");
 				el.classList.remove("cap-fail");
 				el.querySelector(".cap-icon").innerHTML = "&#xe86c;"; // check circle
@@ -1072,7 +1079,7 @@ var spotifyHandler = {
 			}
 		});
 		// Re-check SDK connection after a delay (it may connect later)
-		if (!spotifyHandler.webPlayerDeviceId) {
+		if (!spotifyHandler.webPlayerDeviceId && !sdkDisabled) {
 			setTimeout(function() {
 				var el = document.getElementById("cap-sdk-connected");
 				if (spotifyHandler.webPlayerDeviceId) {
