@@ -820,6 +820,28 @@ var spotifyHandler = {
 			}
 		});
 
+		// Idle mode toggle
+		var idleWithProgress = document.getElementById("idle-with-progress");
+		var idleWithoutProgress = document.getElementById("idle-without-progress");
+		var idleMode = localStorage.getItem("spotify_idle_mode") || "with-progress";
+		if (idleMode === "title-only") {
+			idleWithoutProgress.classList.add("active");
+			idleWithProgress.classList.remove("active");
+			spotifyHandler.dom.playerPage.classList.add("idle-compact");
+		}
+		idleWithProgress.addEventListener("click", function() {
+			localStorage.setItem("spotify_idle_mode", "with-progress");
+			idleWithProgress.classList.add("active");
+			idleWithoutProgress.classList.remove("active");
+			spotifyHandler.dom.playerPage.classList.remove("idle-compact");
+		});
+		idleWithoutProgress.addEventListener("click", function() {
+			localStorage.setItem("spotify_idle_mode", "title-only");
+			idleWithoutProgress.classList.add("active");
+			idleWithProgress.classList.remove("active");
+			spotifyHandler.dom.playerPage.classList.add("idle-compact");
+		});
+
 		// Capability checks
 		spotifyHandler.runCapabilityChecks();
 
