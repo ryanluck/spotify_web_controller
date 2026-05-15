@@ -203,7 +203,7 @@ p {
 	bottom: 0px;
 	left: 0px;
 	right: 0px;
-	padding: 18px 24px 28px 24px;
+	padding: 18px 24px 12px 24px;
 }
 
 #metadata-holder-holder {
@@ -373,37 +373,47 @@ button[disabled] {
 #controls-holder {
 	text-align: center;
 	white-space: nowrap;
+	margin-bottom: 0;
 }
 
 .main-button {
-	font-size: 76px;
-	width: 88px;
-	height: 88px;
-	margin: 0px -12px;
-	border-radius: 44px;
+	font-size: 64px;
+	width: 72px;
+	height: 56px;
+	margin: 0px -8px;
+	border-radius: 36px;
 }
 
 .skip-button {
-	font-size: 48px;
-	width: 60px;
-	height: 60px;
+	font-size: 40px;
+	width: 52px;
+	height: 52px;
 	margin: 0px 8px;
 }
 
 .side-button {
 	font-size: 20px;
-	width: 50px;
-	height: 50px;
+	width: 44px;
+	height: 44px;
 }
 
 #bottombar {
-	white-space: nowrap;
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	padding: 0;
+	margin-top: -4px;
 }
 
 .bar-button {
 	width: 40px;
 	height: 40px;
-	font-size: 24px;
+	font-size: 22px;
+	color: #B3B3B3;
+}
+
+.bar-button:hover {
+	color: #FFFFFF;
 }
 
 #devices-button {
@@ -424,8 +434,10 @@ button[disabled] {
 	white-space: nowrap;
 }
 
-#queue-button {
-	float: right;
+#bottombar-right {
+	display: flex;
+	align-items: center;
+	gap: 4px;
 }
 
 #listeningon-holder {
@@ -549,8 +561,7 @@ button[disabled] {
 }
 
 #volume-button {
-	float: right;
-	margin-right: 8px;
+	color: #B3B3B3;
 }
 
 .close-button {
