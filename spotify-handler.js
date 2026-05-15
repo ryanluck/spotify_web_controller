@@ -362,9 +362,9 @@ var spotifyHandler = {
 							}
 						}
 						else {
-							tempList += '<li class="devicelist-item" onclick="spotifyHandler.transferPlayback(\''+data.devices[i].id+'\')"><span class="devicelist-icon material-icons">'+getDeviceIcon(data.devices[i].type.toLowerCase())+'</span><span class="devicelist-name">'+data.devices[i].name+'</span></li>';
+							tempList += '<li class="devicelist-item" onclick="spotifyHandler.transferPlayback(\''+data.devices[i].id+'\')"><span class="devicelist-icon material-icons">'+getDeviceIcon(data.devices[i].type.toLowerCase())+'</span><span class="devicelist-name">'+stripTags(data.devices[i].name)+'</span></li>';
 						}
-						tempListDis += '<li class="devicelist-item" onclick="spotifyHandler.startPlaySession(\''+data.devices[i].id+'\')"><span class="devicelist-icon material-icons">'+getDeviceIcon(data.devices[i].type.toLowerCase())+'</span><span class="devicelist-name">'+data.devices[i].name+'</span></li>';
+						tempListDis += '<li class="devicelist-item" onclick="spotifyHandler.startPlaySession(\''+data.devices[i].id+'\')"><span class="devicelist-icon material-icons">'+getDeviceIcon(data.devices[i].type.toLowerCase())+'</span><span class="devicelist-name">'+stripTags(data.devices[i].name)+'</span></li>';
 					}
 					spotifyHandler.dom.deviceList.innerHTML = tempList;
 					spotifyHandler.dom.discoverList.innerHTML = tempListDis;
