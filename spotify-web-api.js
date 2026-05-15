@@ -1287,7 +1287,7 @@ var SpotifyWebApi = (function() {
    */
   Constr.prototype.search = function(query, types, options, callback) {
     var requestData = {
-      url: _baseUri + '/search/',
+      url: _baseUri + '/search',
       params: {
         q: query,
         type: types.join(',')

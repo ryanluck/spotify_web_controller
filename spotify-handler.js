@@ -154,11 +154,7 @@ var spotifyHandler = {
 							switch (data.context.type) {
 								case "playlist": {
 									spotifyHandler.api.getPlaylist(data.context.uri.split(":").pop(), {fields: "name,id"}, function(err, data) {
-										if (err) {
-											console.error(err);
-										}
-										else {
-											// console.log(data);
+										if (!err && data) {
 											spotifyHandler.dom.playingFrom.innerHTML = "Playing from playlist";
 											spotifyHandler.dom.playingFromName.innerHTML = stripTags(data.name);
 											spotifyHandler.dom.contextName.innerHTML = stripTags(data.name);
@@ -169,11 +165,7 @@ var spotifyHandler = {
 								}
 								case "album": {
 									spotifyHandler.api.getAlbum(data.context.uri.split(":").pop(), {}, function(err, data) {
-										if (err) {
-											console.error(err);
-										}
-										else {
-											// console.log(data);
+										if (!err && data) {
 											spotifyHandler.dom.playingFrom.innerHTML = "Playing from album";
 											spotifyHandler.dom.playingFromName.innerHTML = stripTags(data.name);
 											spotifyHandler.dom.contextName.innerHTML = stripTags(data.name);
@@ -184,11 +176,7 @@ var spotifyHandler = {
 								}
 								case "artist": {
 									spotifyHandler.api.getArtist(data.context.uri.split(":").pop(), {}, function(err, data) {
-										if (err) {
-											console.error(err);
-										}
-										else {
-											// console.log(data);
+										if (!err && data) {
 											spotifyHandler.dom.playingFrom.innerHTML = "Playing from artist";
 											spotifyHandler.dom.playingFromName.innerHTML = stripTags(data.name);
 											spotifyHandler.dom.contextName.innerHTML = stripTags(data.name);
@@ -466,11 +454,11 @@ var spotifyHandler = {
 			}
 			else if (type == "artist") {
 				spotifyHandler.fetchingQueue = true;
-				spotifyHandler.api.getArtistTopTracks(id, "from_token", {}, spotifyHandler.handleFetchedTracks);
+				spotifyHandler.api.getArtistTopTracks(id, "US", {}, spotifyHandler.handleFetchedTracks);
 			}
 			else if (type == "library" && id == "library") {
 				spotifyHandler.fetchingQueue = true;
-				spotifyHandler.api.getMySavedTracks({offset: offset, limit: 50, market: "from_token"}, spotifyHandler.handleFetchedTracks);
+				spotifyHandler.api.getMySavedTracks({offset: offset, limit: 50}, spotifyHandler.handleFetchedTracks);
 			}
 			else {
 				spotifyHandler.dom.queueButton.disabled = true;
@@ -568,6 +556,9 @@ var spotifyHandler = {
 				}
 			});
 		}
+		if (pageHandler.shown == "searchpage") {
+			pageHandler.showPage("playerpage");
+		}
 	},
 
 	startPlaySession: function(deviceId) {
@@ -606,7 +597,7 @@ var spotifyHandler = {
 				}
 				offset = offset - spotifyHandler.playlistsTotal;
 				if (offset >= 0) {
-					spotifyHandler.api.getMySavedAlbums({offset: offset, limit: 50, country: "from_token"}, spotifyHandler.handleFetchedPlaylists);
+					spotifyHandler.api.getMySavedAlbums({offset: offset, limit: 50}, spotifyHandler.handleFetchedPlaylists);
 				}
 			}
 		}
@@ -674,7 +665,7 @@ var spotifyHandler = {
 		}
 		if (q.trim() != "")
 		{
-			spotifyHandler.searchReq = spotifyHandler.api.search(q.trim(), ["track", "album", "playlist"], {offset: 0, limit: 12, market: "from_token"});
+			spotifyHandler.searchReq = spotifyHandler.api.search(q.trim(), ["track", "album", "playlist"], {offset: 0, limit: 10});
 			spotifyHandler.searchReq.then(function(data) {
 				console.log("Search results are in", data);
 				spotifyHandler.dom.search.innerHTML = "";
@@ -682,21 +673,27 @@ var spotifyHandler = {
 				if (data.tracks.items.length > 0) {
 					spotifyHandler.dom.search.appendChild(spotifyHandler.createDividerItem("Tracks"));
 					for (var i = 0; i < data.tracks.items.length; i++) {
-						spotifyHandler.dom.search.appendChild(spotifyHandler.createTrackItem(data.tracks.items[i], true, false));
+						if (data.tracks.items[i]) {
+							spotifyHandler.dom.search.appendChild(spotifyHandler.createTrackItem(data.tracks.items[i], true, false));
+						}
 					}
 					anyResults = true;
 				}
 				if (data.albums.items.length > 0) {
 					spotifyHandler.dom.search.appendChild(spotifyHandler.createDividerItem("Albums"));
 					for (var i = 0; i < data.albums.items.length; i++) {
-						spotifyHandler.dom.search.appendChild(spotifyHandler.createPlaylistOrAlbumItem(data.albums.items[i], true));
+						if (data.albums.items[i]) {
+							spotifyHandler.dom.search.appendChild(spotifyHandler.createPlaylistOrAlbumItem(data.albums.items[i], true));
+						}
 					}
 					anyResults = true;
 				}
 				if (data.playlists.items.length > 0) {
 					spotifyHandler.dom.search.appendChild(spotifyHandler.createDividerItem("Playlists"));
 					for (var i = 0; i < data.playlists.items.length; i++) {
-						spotifyHandler.dom.search.appendChild(spotifyHandler.createPlaylistOrAlbumItem(data.playlists.items[i], true));
+						if (data.playlists.items[i]) {
+							spotifyHandler.dom.search.appendChild(spotifyHandler.createPlaylistOrAlbumItem(data.playlists.items[i], true));
+						}
 					}
 					anyResults = true;
 				}
@@ -904,9 +901,10 @@ var spotifyHandler = {
 		});
 
 		spotifyHandler.dom.searchBar.addEventListener("input", function(event) {
+			var value = event.target.value;
 			clearTimeout(spotifyHandler.searchDebounce);
 			spotifyHandler.searchDebounce = setTimeout(function() {
-				spotifyHandler.search(event.target.value);
+				spotifyHandler.search(value);
 			}, 300);
 		});
 
