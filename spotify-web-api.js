@@ -1576,6 +1576,13 @@ var SpotifyWebApi = (function() {
    * one is the error object (null if no error), and the second is the value if the request succeeded.
    * @return {Object} Null if a callback is provided, a `Promise` object otherwise
    */
+  Constr.prototype.getMyQueue = function(callback) {
+    var requestData = {
+      url: _baseUri + '/me/player/queue'
+    };
+    return _checkParamsAndPerformRequest(requestData, callback);
+  };
+
   Constr.prototype.skipToNext = function(options, callback) {
     options = options || {};
     var params = 'device_id' in options ? {device_id: options.device_id} : null;
