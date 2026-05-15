@@ -827,6 +827,7 @@ var spotifyHandler = {
 			modeFullscreen.classList.remove("active");
 			spotifyHandler.dom.playerPage.classList.remove("fullscreen-art");
 			spotifyHandler.dom.playerPage.style.backgroundImage = "";
+			darkenSection.style.display = "none";
 		});
 		modeFullscreen.addEventListener("click", function() {
 			localStorage.setItem("spotify_display_mode", "fullscreen");
@@ -835,6 +836,24 @@ var spotifyHandler = {
 			spotifyHandler.dom.playerPage.classList.add("fullscreen-art");
 			if (spotifyHandler.dom.artwork.src && spotifyHandler.dom.artwork.src.indexOf("data:image") !== 0) {
 				spotifyHandler.dom.playerPage.style.backgroundImage = "url(" + spotifyHandler.dom.artwork.src + ")";
+			}
+			darkenSection.style.display = "block";
+		});
+
+		// Darken background toggle
+		var darkenCheckbox = document.getElementById("enable-darken");
+		var darkenSection = document.getElementById("darken-section");
+		darkenCheckbox.checked = localStorage.getItem("spotify_darken_bg") === "true";
+		darkenSection.style.display = (currentMode === "fullscreen") ? "block" : "none";
+		if (darkenCheckbox.checked) {
+			spotifyHandler.dom.playerPage.classList.add("darken-bg");
+		}
+		darkenCheckbox.addEventListener("change", function() {
+			localStorage.setItem("spotify_darken_bg", darkenCheckbox.checked);
+			if (darkenCheckbox.checked) {
+				spotifyHandler.dom.playerPage.classList.add("darken-bg");
+			} else {
+				spotifyHandler.dom.playerPage.classList.remove("darken-bg");
 			}
 		});
 

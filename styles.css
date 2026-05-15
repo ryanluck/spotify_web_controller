@@ -948,6 +948,17 @@ h2 {
 	background-position: center !important;
 }
 
+#playerpage.fullscreen-art.darken-bg::before {
+	content: '';
+	position: fixed;
+	top: 0;
+	left: 0;
+	right: 0;
+	bottom: 0;
+	background: rgba(0, 0, 0, 0.4);
+	z-index: 0;
+}
+
 #playerpage.fullscreen-art #below-art-holder {
 	position: fixed;
 	bottom: 0;
