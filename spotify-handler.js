@@ -15,6 +15,7 @@ var spotifyHandler = {
 	volumeCooldown: false,
 	idleTimer: null,
 	idleDelay: 10000,
+	wakeLock: null,
 
 	clientId: "958af218b7f249d38baf29604b851d57",
 	buildCommit: "__BUILD_COMMIT__",
@@ -244,10 +245,12 @@ var spotifyHandler = {
 					if (data.is_playing) {
 						spotifyHandler.dom.playPauseButton.title = "Pause";
 						spotifyHandler.dom.playPauseButton.innerHTML = "&#xe035;";
+						spotifyHandler.acquireWakeLock();
 					}
 					else {
 						spotifyHandler.dom.playPauseButton.title = "Play";
 						spotifyHandler.dom.playPauseButton.innerHTML = "&#xe038;";
+						spotifyHandler.releaseWakeLock();
 					}
 
 					if (!data.item.is_local) {
@@ -343,6 +346,24 @@ var spotifyHandler = {
 				spotifyHandler.fixArtSizeIdle();
 			}
 		}, spotifyHandler.idleDelay);
+	},
+
+	acquireWakeLock: function() {
+		if ('wakeLock' in navigator && !spotifyHandler.wakeLock) {
+			navigator.wakeLock.request('screen').then(function(lock) {
+				spotifyHandler.wakeLock = lock;
+				lock.addEventListener('release', function() {
+					spotifyHandler.wakeLock = null;
+				});
+			}).catch(function() {});
+		}
+	},
+
+	releaseWakeLock: function() {
+		if (spotifyHandler.wakeLock) {
+			spotifyHandler.wakeLock.release();
+			spotifyHandler.wakeLock = null;
+		}
 	},
 
 	fixArtSize: function() {
@@ -1072,6 +1093,13 @@ var spotifyHandler = {
 		// Idle detection - hide controls after inactivity
 		spotifyHandler.resetIdleTimer();
 		document.addEventListener('keydown', spotifyHandler.resetIdleTimer);
+
+		// Re-acquire wake lock when page becomes visible
+		document.addEventListener('visibilitychange', function() {
+			if (!document.hidden && spotifyHandler.lastPlaybackStatus.is_playing) {
+				spotifyHandler.acquireWakeLock();
+			}
+		});
 
 		// Tap to toggle idle mode
 		var idleToggleCooldown = false;
