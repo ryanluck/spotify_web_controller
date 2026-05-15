@@ -15,7 +15,7 @@ var spotifyHandler = {
 	volumeCooldown: false,
 
 	clientId: "958af218b7f249d38baf29604b851d57",
-	buildCommit: "75aa893",
+	buildCommit: "__BUILD_COMMIT__",
 
 	generateCodeVerifier: function() {
 		var array = new Uint8Array(64);
