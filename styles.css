@@ -4,6 +4,7 @@ html, body {
 	margin: 0px;
 	background-color: #191414;
 	color: #FFFFFF;
+	color-scheme: dark;
 	font-family: Roboto, Verdana, Arial, Sans-Serif;
 	font-size: 16px;
 	cursor: default;
