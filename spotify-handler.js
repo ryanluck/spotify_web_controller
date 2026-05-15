@@ -801,6 +801,7 @@ var spotifyHandler = {
 			} else if (webPlaybackCheckbox.checked && !spotifyHandler.webPlayer) {
 				spotifyHandler.initWebPlayer();
 			}
+			spotifyHandler.runCapabilityChecks();
 		});
 
 		window.addEventListener("resize", spotifyHandler.fixArtSize);
@@ -1068,27 +1069,31 @@ var spotifyHandler = {
 				el.classList.remove("cap-pass");
 				el.classList.remove("cap-fail");
 				el.style.color = "#666";
-				el.querySelector(".cap-icon").innerHTML = "&#xe15b;"; // remove circle
-				el.innerHTML = el.innerHTML.replace(/(connected).*$/, '$1 (disabled)');
+				el.innerHTML = '<span class="cap-icon">&#xe15b;</span> Web Playback SDK connected (disabled)';
 			} else if (check.pass) {
 				el.classList.add("cap-pass");
 				el.classList.remove("cap-fail");
-				el.querySelector(".cap-icon").innerHTML = "&#xe86c;"; // check circle
+				el.style.color = "";
+				if (check.id === "cap-sdk-connected") {
+					el.innerHTML = '<span class="cap-icon">&#xe86c;</span> Web Playback SDK connected';
+				} else {
+					el.querySelector(".cap-icon").innerHTML = "&#xe86c;";
+				}
 			} else {
 				el.classList.add("cap-fail");
 				el.classList.remove("cap-pass");
-				el.querySelector(".cap-icon").innerHTML = "&#xe000;"; // error
+				el.style.color = "";
+				if (check.id === "cap-sdk-connected") {
+					el.innerHTML = '<span class="cap-icon">&#xe000;</span> Web Playback SDK connected';
+				} else {
+					el.querySelector(".cap-icon").innerHTML = "&#xe000;";
+				}
 			}
 		});
 		// Re-check SDK connection after a delay (it may connect later)
 		if (!spotifyHandler.webPlayerDeviceId && !sdkDisabled) {
 			setTimeout(function() {
-				var el = document.getElementById("cap-sdk-connected");
-				if (spotifyHandler.webPlayerDeviceId) {
-					el.classList.add("cap-pass");
-					el.classList.remove("cap-fail");
-					el.querySelector(".cap-icon").innerHTML = "&#xe86c;";
-				}
+				spotifyHandler.runCapabilityChecks();
 			}, 5000);
 		}
 	},
