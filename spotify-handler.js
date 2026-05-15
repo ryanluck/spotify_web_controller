@@ -1033,8 +1033,40 @@ var spotifyHandler = {
 
 		// Idle detection - hide controls after inactivity
 		spotifyHandler.resetIdleTimer();
-		['touchstart', 'mousedown', 'mousemove', 'keydown'].forEach(function(event) {
-			document.addEventListener(event, spotifyHandler.resetIdleTimer);
+		document.addEventListener('keydown', spotifyHandler.resetIdleTimer);
+
+		// Tap to toggle idle mode
+		var idleToggleCooldown = false;
+		spotifyHandler.dom.playerPage.addEventListener("click", function(event) {
+			if (idleToggleCooldown) return;
+			
+			if (spotifyHandler.dom.playerPage.classList.contains("idle")) {
+				// Exit idle
+				spotifyHandler.dom.playerPage.classList.remove("idle");
+				clearTimeout(spotifyHandler.idleTimer);
+				spotifyHandler.idleTimer = setTimeout(function() {
+					if (pageHandler.shown == "playerpage") {
+						spotifyHandler.dom.playerPage.classList.add("idle");
+					}
+				}, spotifyHandler.idleDelay);
+				idleToggleCooldown = true;
+				setTimeout(function() { idleToggleCooldown = false; }, 300);
+				return;
+			}
+
+			var tag = event.target.tagName.toLowerCase();
+			var isInteractive = tag === "button" || tag === "input" || tag === "a" ||
+				event.target.closest("button") || event.target.closest("#bottombar") ||
+				event.target.closest("#topbar") || event.target.closest("#controls-holder") ||
+				event.target.closest("#progressbar-outer") || event.target.closest("#volume-popup");
+			if (!isInteractive) {
+				clearTimeout(spotifyHandler.idleTimer);
+				spotifyHandler.dom.playerPage.classList.add("idle");
+				idleToggleCooldown = true;
+				setTimeout(function() { idleToggleCooldown = false; }, 300);
+			} else {
+				spotifyHandler.resetIdleTimer();
+			}
 		});
 
 		var urlParams = new URLSearchParams(window.location.search);
