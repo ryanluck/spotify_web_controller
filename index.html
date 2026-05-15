@@ -156,23 +156,22 @@
 			window.onbeforeunload = function(e) {
 				pageHandler.showPage("loadingpage");
 			};
-			var changingVolume = false;
 			document.getElementById("volumebar").addEventListener("input", function(event) {
 				spotifyHandler.setVolume(event.target.value, true);
 			});
 			document.getElementById("volumebar").addEventListener("mousedown", function(event) {
-				changingVolume = true;
+				spotifyHandler.changingVolume = true;
 			});
 			document.getElementById("volumebar").addEventListener("touchstart", function(event) {
-				changingVolume = true;
+				spotifyHandler.changingVolume = true;
 			});
 			document.getElementById("volumebar").addEventListener("mouseup", function(event) {
 				spotifyHandler.setVolume(event.target.value, false);
-				changingVolume = false;
+				spotifyHandler.changingVolume = false;
 			});
 			document.getElementById("volumebar").addEventListener("touchend", function(event) {
 				spotifyHandler.setVolume(event.target.value, false);
-				changingVolume = false;
+				spotifyHandler.changingVolume = false;
 			});
 		</script>
 	</body>

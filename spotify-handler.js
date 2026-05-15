@@ -1,18 +1,17 @@
 var spotifyHandler = {
 	scopes: ["user-read-private", "user-read-currently-playing", "user-read-playback-state", "user-modify-playback-state", "user-read-recently-played", "user-library-read", "user-library-modify", "playlist-read-private", "playlist-read-collaborative", "streaming"],
-	accessToken: null,
 	expires: -1,
 	api: new SpotifyWebApi(),
 	dom: {},
 	progress: 0,
 	duration: 0,
 	lastTrackId: "null2",
-	lastQueueId: "null2",
 	lastPlaybackStatus: {},
 	likeCheckDisabled: false,
 	webPlayer: null,
 	webPlayerDeviceId: null,
 	webPlayerActivated: false,
+	changingVolume: false,
 
 	clientId: "958af218b7f249d38baf29604b851d57",
 
@@ -387,7 +386,7 @@ var spotifyHandler = {
 
 	setVolume: function(newVolume, volumebarOnly) {
 		spotifyHandler.dom.volumebar.style.background = 'linear-gradient(to right, #1DB954 0%, #1DB954 '+newVolume+'%, #353942 '+newVolume+'%, #353942 100%)';
-		if (spotifyHandler.dom.volumebar.value != newVolume && !changingVolume) {
+		if (spotifyHandler.dom.volumebar.value != newVolume && !spotifyHandler.changingVolume) {
 			spotifyHandler.dom.volumebar.value = newVolume;
 		}
 		if (!volumebarOnly) {
@@ -416,8 +415,6 @@ var spotifyHandler = {
 	},
 
 	fetchingQueue: false,
-	queueTotal: undefined,
-	queueOffset: 0,
 	fillQueue: function(type, id) {
 		spotifyHandler.refreshQueue();
 	},
@@ -435,7 +432,7 @@ var spotifyHandler = {
 
 			if (data.currently_playing) {
 				spotifyHandler.dom.contextName.innerHTML = "Now Playing";
-				var nowPlaying = spotifyHandler.createTrackItem(data.currently_playing, true, false, false, false);
+				var nowPlaying = spotifyHandler.createTrackItem(data.currently_playing, true, false, false);
 				nowPlaying.classList.add("now-playing");
 				spotifyHandler.dom.queue.appendChild(nowPlaying);
 			}
@@ -444,34 +441,21 @@ var spotifyHandler = {
 				spotifyHandler.dom.queue.appendChild(spotifyHandler.createDividerItem("Up Next"));
 				for (var i = 0; i < data.queue.length; i++) {
 					if (data.queue[i]) {
-						spotifyHandler.dom.queue.appendChild(spotifyHandler.createTrackItem(data.queue[i], true, false));
+						spotifyHandler.dom.queue.appendChild(spotifyHandler.createTrackItem(data.queue[i], true));
 					}
 				}
 			}
 		});
 	},
 
-	fetchQueueTracks: function(type, id, offset) {
-		// Legacy - kept for compatibility but now uses refreshQueue
-		spotifyHandler.refreshQueue();
-	},
-
-	handleFetchedTracks: function(err, data) {
-		spotifyHandler.fetchingQueue = false;
-		spotifyHandler.dom.queueButton.disabled = false;
-	},
-
-	createTrackItem: function(tempTrack, doCover, inCurrentContext, showAddToQueue, clickable) {
+	createTrackItem: function(tempTrack, doCover, showAddToQueue, clickable) {
 		if (clickable === undefined) clickable = true;
 		var trackElem = document.createElement("li");
 		var tempArtists = [];
 		trackElem.className = "queue-item";
 		trackElem.setAttribute("data-uri", tempTrack.uri);
 		if (clickable) {
-			if (inCurrentContext) {
-				trackElem.setAttribute("data-context", "spotify:"+spotifyHandler.lastQueueType+":"+spotifyHandler.lastQueueId);
-			}
-			else {
+			if (tempTrack.album) {
 				trackElem.setAttribute("data-context", tempTrack.album.uri);
 			}
 			trackElem.setAttribute("onclick", "spotifyHandler.playContext(this.getAttribute('data-context'), this.getAttribute('data-uri'));");
@@ -485,21 +469,6 @@ var spotifyHandler = {
 		var addToQueueBtn = showAddToQueue ? '<button class="queue-add-btn material-icons" onclick="event.stopPropagation(); spotifyHandler.addToQueue(\''+tempTrack.uri+'\', this);" title="Add to queue">&#xe05f;</button>' : '';
 		trackElem.innerHTML = (doCover ? '<div class="queue-item-cover"><img src="'+(tempTrack.album.images.length > 0 ? tempTrack.album.images.pop().url : 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7')+'"></div>': '<div class="queue-item-cover"><span>'+(tempTrack.disc_number > 1 ? tempTrack.disc_number+'-' : '')+tempTrack.track_number+'</span></div>')+'<div class="queue-item-metadata"><div class="queue-item-name">'+stripTags(tempTrack.name)+'</div><div class="queue-item-artist">'+tempArtists.join(', ')+'</div></div>'+addToQueueBtn;
 		return (trackElem);
-	},
-
-	addQueueTracks: function(tracks, doCover) {
-		var tempTrack = {};
-		for (var i = 0; i < tracks.length; i++) {
-			
-			tempTrack = tracks[i];
-			if ("track" in tempTrack) {
-				tempTrack = tempTrack.track;
-				doCover = true;
-			}
-			if (tempTrack.uri != null && tempTrack.uri.indexOf(":local:") == -1) {
-				spotifyHandler.dom.queue.appendChild(spotifyHandler.createTrackItem(tempTrack, doCover, true));
-			}
-		}
 	},
 
 	addToQueue: function(uri, btnElement) {
@@ -696,7 +665,7 @@ var spotifyHandler = {
 					for (var i = 0; i < items.length; i++) {
 						if (!items[i]) continue;
 						if (section.type === "tracks") {
-							spotifyHandler.dom.search.appendChild(spotifyHandler.createTrackItem(items[i], true, false, true));
+							spotifyHandler.dom.search.appendChild(spotifyHandler.createTrackItem(items[i], true, true));
 						} else if (section.type === "artists") {
 							spotifyHandler.dom.search.appendChild(spotifyHandler.createArtistItem(items[i]));
 						} else {
@@ -899,13 +868,6 @@ var spotifyHandler = {
 					}, 250);
 				}
 			});
-		});
-
-		spotifyHandler.dom.queuePage.addEventListener("scroll", function(event) {
-			if (event.target.offsetHeight + event.target.scrollTop + 1280 >= event.target.scrollHeight && spotifyHandler.fetchingQueue != true && spotifyHandler.queueOffset < spotifyHandler.queueTotal) {
-				console.log("Scrolled near the end of queue, fetching more tracks");
-				spotifyHandler.fetchQueueTracks(spotifyHandler.lastQueueType, spotifyHandler.lastQueueId, spotifyHandler.queueOffset);
-			}
 		});
 
 		spotifyHandler.dom.libraryPage.addEventListener("scroll", function(event) {
