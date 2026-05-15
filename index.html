@@ -3,21 +3,17 @@
 	<head>
 		<meta charset="utf-8">
 		<link rel="manifest" href="manifest.json" />
-		<title>Spotify Remote Web Controller</title>
-		<meta name="description" content="A web controller for Spotify, targeted for Android Go, because I've heard the official Spotify application runs like shit and sometimes you just wanna control what's playing without getting up from bed or something">
+		<title>Spotify Web Controller</title>
+		<meta name="description" content="A lightweight web-based Spotify controller with in-browser playback. No backend required.">
 		<meta name="mobile-web-app-capable" content="yes" />
 		<meta name="theme-color" content="#1DB954" />
-		<meta name="application-name" content="Spotify Remote Web Controller">
-		<meta name="og:image" content="https://freekb.es/spotify/icon.png" />
-		<meta property="og:image" content="https://freekb.es/spotify/icon.png" />
+		<meta name="application-name" content="Spotify Web Controller">
 		<link rel="shortcut icon" href="favicon.ico" type="image/x-icon" />
 		<link rel="icon" type="image/ico" href="favicon.ico" />
 		<meta name="apple-mobile-web-app-capable" content="yes" />
-		<meta name="apple-mobile-web-app-title" content="Spotify Remote Web Controller" />
+		<meta name="apple-mobile-web-app-title" content="Spotify Web Controller" />
 		<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 		<meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
-		<meta name="browsermode" content="application">
-		<meta name="screen-orientation" content="portrait">
 
 		<link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
 		<link rel="stylesheet" href="styles.css">
@@ -53,16 +49,16 @@
 		</div>
 		<div class="page" id="signinpage">
 			<h1 id="welcome">Welcome to the Spotify Web Controller</h1>
-			<p>You have to sign in with your Spotify account in order to control playback.</p>
+			<p>Sign in with your Spotify account to control playback.</p>
 			<button class="bigbutton" id="signinbtn">Sign in with Spotify</button>
-			<p class="disclaimer"><small>This website uses cookies to store preferences and required user data. By clicking above button, we take that to mean that you accept their use.</small></p>
-			<p class="disclaimer footer"><small>This web application is <b>not</b> owned by Spotify AB. It was instead built by <a href="https://freekb.es/">Freek Bes</a> using the official <a href="https://developer.spotify.com/documentation/web-api/">Spotify Web API</a>.</small></p>
+			<p class="disclaimer"><small>This website uses cookies to store authentication data. By signing in, you accept their use.</small></p>
+			<p class="disclaimer footer"><small>This web application is not affiliated with Spotify AB. Built using the official <a href="https://developer.spotify.com/documentation/web-api/">Spotify Web API</a>.</small></p>
 		</div>
 		<div class="page" id="discoverpage">
 			<div style="display: table; width: 100%; height: 100%; position: fixed; top: 0px; left: 0px; right: 0px; bottom: 0px;">
 				<div style="display: table-cell; vertical-align: middle;">
-					<h2>Looking for instances of Spotify...</h2>
-					<p id="discover-disclaimer" class="disclaimer">Open Spotify on your computer, smartphone, or anything else. You will be able to control playback here once you've done so.</p>
+					<h2>Connecting to Spotify...</h2>
+					<p id="discover-disclaimer" class="disclaimer">Waiting for a Spotify device to become available. Open Spotify on any device or wait for the web player to connect.</p>
 					<div id="discoverspinner" class="spinner"></div>
 					<div id="discoverlist-holder" style="display: none;">
 						<div class="selectdevice">Which device would you like to use?</div>

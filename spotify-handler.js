@@ -125,7 +125,6 @@ var spotifyHandler = {
 					console.error(err);
 				}
 				else if (data != undefined && typeof data != "string" && data.item != null) {
-					// console.log(data);
 					spotifyHandler.lastPlaybackStatus = data;
 					if (pageHandler.shown == "discoverpage") {
 						pageHandler.showPage("playerpage");
@@ -199,7 +198,6 @@ var spotifyHandler = {
 							spotifyHandler.dom.playingFromName.innerHTML = "Liked Songs";
 							spotifyHandler.dom.contextName.innerHTML = "Liked Songs";
 							spotifyHandler.fillQueue("library", "library");
-							console.log("No context for currently playing track, assuming library is being played");
 						}
 						if ('mediaSession' in navigator)
 						{
@@ -412,7 +410,6 @@ var spotifyHandler = {
 					spotifyHandler.transferringPlayback = false;
 				}
 				else {
-					console.log("Moved playback");
 					setTimeout(function() {
 						spotifyHandler.refreshDevices();
 						spotifyHandler.transferringPlayback = false;
@@ -576,7 +573,6 @@ var spotifyHandler = {
 			console.error(err);
 		}
 		else {
-			console.log("Playlists or albums fetched", data);
 			spotifyHandler.addPlaylists(data.items);
 			spotifyHandler.playlistsOffset += data.items.length;
 			if (data.href.indexOf("me/albums") == -1) {
@@ -643,7 +639,6 @@ var spotifyHandler = {
 			spotifyHandler.searchReq = spotifyHandler.api.search(q.trim(), ["track", "artist", "album", "playlist"], {offset: 0, limit: 10});
 			spotifyHandler.searchReq.then(function(data) {
 				spotifyHandler.searchRetried = false;
-				console.log("Search results are in", data);
 				spotifyHandler.dom.search.innerHTML = "";
 				var anyResults = false;
 				// Determine result order based on relevance
@@ -755,7 +750,6 @@ var spotifyHandler = {
 					spotifyHandler.dom.themeColor.setAttribute("content", swatches.Muted.getHex());
 				}
 				else {
-					console.log(swatches);
 					spotifyHandler.dom.playerPage.style.background = null;
 					spotifyHandler.dom.themeColor.setAttribute("content", "#1DB954");
 				}
@@ -880,7 +874,6 @@ var spotifyHandler = {
 
 		spotifyHandler.dom.libraryPage.addEventListener("scroll", function(event) {
 			if (event.target.offsetHeight + event.target.scrollTop + 1280 >= event.target.scrollHeight && spotifyHandler.fetchingPlaylists != true) {
-				console.log("Scrolled near the end of library, fetching more playlists");
 				spotifyHandler.fetchPlaylists(spotifyHandler.playlistsOffset);
 			}
 		});
@@ -1018,14 +1011,12 @@ var spotifyHandler = {
 		});
 
 		player.addListener('ready', function(data) {
-			console.log('Web Playback SDK ready, device ID:', data.device_id);
 			spotifyHandler.webPlayerDeviceId = data.device_id;
 			// If nothing is currently playing, activate the web player
 			if (!spotifyHandler.lastPlaybackStatus.is_playing && !spotifyHandler.webPlayerActivated) {
 				spotifyHandler.webPlayerActivated = true;
 				spotifyHandler.api.transferMyPlayback([data.device_id], {play: false}, function(err) {
 					if (!err) {
-						console.log("Activated web player as default device");
 						pageHandler.showPage("playerpage");
 					}
 				});
@@ -1037,7 +1028,6 @@ var spotifyHandler = {
 		});
 
 		player.addListener('not_ready', function(data) {
-			console.log('Web Playback SDK device has gone offline:', data.device_id);
 			spotifyHandler.webPlayerDeviceId = null;
 		});
 
