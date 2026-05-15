@@ -243,29 +243,33 @@ var spotifyHandler = {
 						spotifyHandler.dom.playPauseButton.innerHTML = "&#xe038;";
 					}
 
-					if (!data.item.is_local && !spotifyHandler.likeCheckDisabled) {
+					if (!data.item.is_local) {
 						spotifyHandler.dom.likeButton.disabled = false;
 						spotifyHandler.dom.likeButton.style.display = "inline-block";
-						spotifyHandler.api.containsMySavedTracks([data.item.id], {}, function(err, data) {
-							if (err) {
-								// Disable future checks and hide the like button
-								spotifyHandler.likeCheckDisabled = true;
-								spotifyHandler.dom.likeButton.disabled = true;
-								spotifyHandler.dom.likeButton.style.display = "none";
-							}
-							else if (data[0]) {
-								spotifyHandler.dom.likeButton.innerHTML = "&#xe87d;";
-								spotifyHandler.dom.likeButton.style.color = "#1DB954";
-								spotifyHandler.dom.likeButton.title = "Remove from liked songs";
-								spotifyHandler.dom.likeButton.setAttribute("data-liked", "true");
-							}
-							else {
-								spotifyHandler.dom.likeButton.innerHTML = "&#xe87e;";
-								spotifyHandler.dom.likeButton.style.color = null;
-								spotifyHandler.dom.likeButton.title = "Add to liked songs";
-								spotifyHandler.dom.likeButton.setAttribute("data-liked", "false");
-							}
-						});
+						if (!spotifyHandler.likeCheckDisabled) {
+							spotifyHandler.likeCheckDisabled = true;
+							spotifyHandler.api.containsMySavedTracks([data.item.id], {}, function(err, data) {
+								if (err) {
+									// Can't check liked status, but keep button visible
+									spotifyHandler.dom.likeButton.innerHTML = "&#xe87e;";
+									spotifyHandler.dom.likeButton.style.color = null;
+									spotifyHandler.dom.likeButton.title = "Add to liked songs";
+									spotifyHandler.dom.likeButton.setAttribute("data-liked", "false");
+								}
+								else if (data[0]) {
+									spotifyHandler.dom.likeButton.innerHTML = "&#xe87d;";
+									spotifyHandler.dom.likeButton.style.color = "#1DB954";
+									spotifyHandler.dom.likeButton.title = "Remove from liked songs";
+									spotifyHandler.dom.likeButton.setAttribute("data-liked", "true");
+								}
+								else {
+									spotifyHandler.dom.likeButton.innerHTML = "&#xe87e;";
+									spotifyHandler.dom.likeButton.style.color = null;
+									spotifyHandler.dom.likeButton.title = "Add to liked songs";
+									spotifyHandler.dom.likeButton.setAttribute("data-liked", "false");
+								}
+							});
+						}
 					}
 					else {
 						spotifyHandler.dom.likeButton.disabled = true;
@@ -804,11 +808,8 @@ var spotifyHandler = {
 			spotifyHandler.dom.likeButton.disabled = true;
 			if (spotifyHandler.dom.likeButton.getAttribute("data-liked") == "false") {
 				spotifyHandler.api.addToMySavedTracks([spotifyHandler.lastTrackId], {}, function(err, data) {
-					if (err) {
-						console.error(err);
-					}
-					else {
-						spotifyHandler.dom.likeButton.disabled = false;
+					spotifyHandler.dom.likeButton.disabled = false;
+					if (!err) {
 						spotifyHandler.dom.likeButton.innerHTML = "&#xe87d;";
 						spotifyHandler.dom.likeButton.style.color = "#1DB954";
 						spotifyHandler.dom.likeButton.title = "Remove from liked songs";
@@ -818,11 +819,8 @@ var spotifyHandler = {
 			}
 			else {
 				spotifyHandler.api.removeFromMySavedTracks([spotifyHandler.lastTrackId], {}, function(err, data) {
-					if (err) {
-						console.error(err);
-					}
-					else {
-						spotifyHandler.dom.likeButton.disabled = false;
+					spotifyHandler.dom.likeButton.disabled = false;
+					if (!err) {
 						spotifyHandler.dom.likeButton.innerHTML = "&#xe87e;";
 						spotifyHandler.dom.likeButton.style.color = null;
 						spotifyHandler.dom.likeButton.title = "Add to liked songs";
