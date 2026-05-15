@@ -1018,9 +1018,11 @@ var spotifyHandler = {
 	},
 
 	startPlayback: function() {
+		var sdkEnabled = localStorage.getItem("spotify_web_playback") === "true";
+		var pollInterval = sdkEnabled ? 5000 : 1000;
 		setInterval(spotifyHandler.checkAccessToken, 30000);
 		setInterval(spotifyHandler.refreshDevices, 10000);
-		setInterval(spotifyHandler.setCurrentlyPlaying, 5000);
+		setInterval(spotifyHandler.setCurrentlyPlaying, pollInterval);
 		setTimeout(function() {
 			setInterval(function() {
 				if (spotifyHandler.lastPlaybackStatus.is_playing && !progressBar.hovering) {
