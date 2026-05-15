@@ -244,29 +244,29 @@ var spotifyHandler = {
 					}
 
 					if (!data.item.is_local) {
-						spotifyHandler.dom.likeButton.disabled = false;
-						spotifyHandler.dom.likeButton.style.display = "inline-block";
 						if (!spotifyHandler.likeCheckDisabled) {
 							spotifyHandler.likeCheckDisabled = true;
 							spotifyHandler.api.containsMySavedTracks([data.item.id], {}, function(err, data) {
 								if (err) {
-									// Can't check liked status, but keep button visible
-									spotifyHandler.dom.likeButton.innerHTML = "&#xe87e;";
-									spotifyHandler.dom.likeButton.style.color = null;
-									spotifyHandler.dom.likeButton.title = "Add to liked songs";
-									spotifyHandler.dom.likeButton.setAttribute("data-liked", "false");
-								}
-								else if (data[0]) {
-									spotifyHandler.dom.likeButton.innerHTML = "&#xe87d;";
-									spotifyHandler.dom.likeButton.style.color = "#1DB954";
-									spotifyHandler.dom.likeButton.title = "Remove from liked songs";
-									spotifyHandler.dom.likeButton.setAttribute("data-liked", "true");
+									// Can't check liked status, hide the button
+									spotifyHandler.dom.likeButton.disabled = true;
+									spotifyHandler.dom.likeButton.style.display = "none";
 								}
 								else {
-									spotifyHandler.dom.likeButton.innerHTML = "&#xe87e;";
-									spotifyHandler.dom.likeButton.style.color = null;
-									spotifyHandler.dom.likeButton.title = "Add to liked songs";
-									spotifyHandler.dom.likeButton.setAttribute("data-liked", "false");
+									spotifyHandler.dom.likeButton.disabled = false;
+									spotifyHandler.dom.likeButton.style.display = "inline-block";
+									if (data[0]) {
+										spotifyHandler.dom.likeButton.innerHTML = "&#xe87d;";
+										spotifyHandler.dom.likeButton.style.color = "#1DB954";
+										spotifyHandler.dom.likeButton.title = "Remove from liked songs";
+										spotifyHandler.dom.likeButton.setAttribute("data-liked", "true");
+									}
+									else {
+										spotifyHandler.dom.likeButton.innerHTML = "&#xe87e;";
+										spotifyHandler.dom.likeButton.style.color = null;
+										spotifyHandler.dom.likeButton.title = "Add to liked songs";
+										spotifyHandler.dom.likeButton.setAttribute("data-liked", "false");
+									}
 								}
 							});
 						}
