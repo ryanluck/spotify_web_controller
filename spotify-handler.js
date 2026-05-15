@@ -321,9 +321,11 @@ var spotifyHandler = {
 					if (spotifyHandler.webPlayerDeviceId && !spotifyHandler.webPlayerActivated) {
 						spotifyHandler.webPlayerActivated = true;
 						spotifyHandler.transferPlayback(spotifyHandler.webPlayerDeviceId);
-					} else if (spotifyHandler.webPlayerActivated && pageHandler.shown != "playerpage") {
-						// Only show discover page if web player already tried and we still have no playback
-						pageHandler.showPage("discoverpage");
+					} else if (spotifyHandler.webPlayerActivated && !spotifyHandler.webPlayerDeviceId) {
+						// SDK disconnected — show discover page so user can pick a device
+						if (pageHandler.shown == "playerpage" && spotifyHandler.lastTrackId == "null2") {
+							pageHandler.showPage("discoverpage");
+						}
 					}
 					// Otherwise stay on current page while waiting for SDK
 				}
@@ -1095,6 +1097,12 @@ var spotifyHandler = {
 
 		player.addListener('not_ready', function(data) {
 			spotifyHandler.webPlayerDeviceId = null;
+			// Try to reconnect after a delay
+			setTimeout(function() {
+				if (spotifyHandler.webPlayer) {
+					spotifyHandler.webPlayer.connect();
+				}
+			}, 5000);
 		});
 
 		player.addListener('player_state_changed', function(state) {
