@@ -1583,6 +1583,23 @@ var SpotifyWebApi = (function() {
     return _checkParamsAndPerformRequest(requestData, callback);
   };
 
+  /**
+   * Add an item to the end of the user's current playback queue.
+   *
+   * @param {string} uri The uri of the item to add to the queue (track or episode).
+   * @param {Object} options A JSON object with options that can be passed.
+   * @param {function(Object,Object)} callback An optional callback that receives 2 parameters.
+   * @return {Object} Null if a callback is provided, a `Promise` object otherwise
+   */
+  Constr.prototype.addToQueue = function(uri, options, callback) {
+    var requestData = {
+      type: 'POST',
+      url: _baseUri + '/me/player/queue',
+      params: { uri: uri }
+    };
+    return _checkParamsAndPerformRequest(requestData, options, callback);
+  };
+
   Constr.prototype.skipToNext = function(options, callback) {
     options = options || {};
     var params = 'device_id' in options ? {device_id: options.device_id} : null;

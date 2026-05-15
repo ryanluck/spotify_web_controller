@@ -749,3 +749,23 @@ h2 {
 	height: 34px;
 	border-radius: 17px;
 }
+
+.queue-add-btn {
+	position: absolute;
+	right: 12px;
+	top: 50%;
+	transform: translateY(-50%);
+	width: 36px;
+	height: 36px;
+	font-size: 20px;
+	color: #B3B3B3;
+	padding: 0;
+}
+
+.queue-add-btn:hover {
+	color: #FFFFFF;
+}
+
+.queue-item {
+	position: relative;
+}

@@ -435,7 +435,7 @@ var spotifyHandler = {
 
 			if (data.currently_playing) {
 				spotifyHandler.dom.contextName.innerHTML = "Now Playing";
-				var nowPlaying = spotifyHandler.createTrackItem(data.currently_playing, true, false);
+				var nowPlaying = spotifyHandler.createTrackItem(data.currently_playing, true, false, false, false);
 				nowPlaying.classList.add("now-playing");
 				spotifyHandler.dom.queue.appendChild(nowPlaying);
 			}
@@ -461,24 +461,29 @@ var spotifyHandler = {
 		spotifyHandler.dom.queueButton.disabled = false;
 	},
 
-	createTrackItem: function(tempTrack, doCover, inCurrentContext) {
+	createTrackItem: function(tempTrack, doCover, inCurrentContext, showAddToQueue, clickable) {
+		if (clickable === undefined) clickable = true;
 		var trackElem = document.createElement("li");
 		var tempArtists = [];
 		trackElem.className = "queue-item";
 		trackElem.setAttribute("data-uri", tempTrack.uri);
-		if (inCurrentContext) {
-			trackElem.setAttribute("data-context", "spotify:"+spotifyHandler.lastQueueType+":"+spotifyHandler.lastQueueId);
+		if (clickable) {
+			if (inCurrentContext) {
+				trackElem.setAttribute("data-context", "spotify:"+spotifyHandler.lastQueueType+":"+spotifyHandler.lastQueueId);
+			}
+			else {
+				trackElem.setAttribute("data-context", tempTrack.album.uri);
+			}
+			trackElem.setAttribute("onclick", "spotifyHandler.playContext(this.getAttribute('data-context'), this.getAttribute('data-uri'));");
+		} else {
+			trackElem.style.cursor = "default";
 		}
-		else {
-			trackElem.setAttribute("data-context", tempTrack.album.uri);
-		}
-		trackElem.setAttribute("onclick", "spotifyHandler.playContext(this.getAttribute('data-context'), this.getAttribute('data-uri'));");
 		tempArtists = [];
 		for (var j = 0; j < tempTrack.artists.length; j++) {
 			tempArtists.push(stripTags(tempTrack.artists[j].name));
 		}
-		trackElem.innerHTML = (doCover ? '<div class="queue-item-cover"><img src="'+(tempTrack.album.images.length > 0 ? tempTrack.album.images.pop().url : 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7')+'"></div>': '<div class="queue-item-cover"><span>'+(tempTrack.disc_number > 1 ? tempTrack.disc_number+'-' : '')+tempTrack.track_number+'</span></div>')+'<div class="queue-item-metadata"><div class="queue-item-name">'+stripTags(tempTrack.name)+'</div><div class="queue-item-artist">'+tempArtists.join(', ')+'</div></div>';
-		spotifyHandler.dom.queue.appendChild(trackElem);
+		var addToQueueBtn = showAddToQueue ? '<button class="queue-add-btn material-icons" onclick="event.stopPropagation(); spotifyHandler.addToQueue(\''+tempTrack.uri+'\', this);" title="Add to queue">&#xe05f;</button>' : '';
+		trackElem.innerHTML = (doCover ? '<div class="queue-item-cover"><img src="'+(tempTrack.album.images.length > 0 ? tempTrack.album.images.pop().url : 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7')+'"></div>': '<div class="queue-item-cover"><span>'+(tempTrack.disc_number > 1 ? tempTrack.disc_number+'-' : '')+tempTrack.track_number+'</span></div>')+'<div class="queue-item-metadata"><div class="queue-item-name">'+stripTags(tempTrack.name)+'</div><div class="queue-item-artist">'+tempArtists.join(', ')+'</div></div>'+addToQueueBtn;
 		return (trackElem);
 	},
 
@@ -495,6 +500,19 @@ var spotifyHandler = {
 				spotifyHandler.dom.queue.appendChild(spotifyHandler.createTrackItem(tempTrack, doCover, true));
 			}
 		}
+	},
+
+	addToQueue: function(uri, btnElement) {
+		spotifyHandler.api.addToQueue(uri, {}, function(err) {
+			if (!err) {
+				btnElement.innerHTML = "&#xe876;"; // checkmark
+				btnElement.disabled = true;
+				setTimeout(function() {
+					btnElement.innerHTML = "&#xe05f;"; // queue icon
+					btnElement.disabled = false;
+				}, 2000);
+			}
+		});
 	},
 
 	playContext: function(contextUri, trackUri) {
@@ -653,7 +671,7 @@ var spotifyHandler = {
 					spotifyHandler.dom.search.appendChild(spotifyHandler.createDividerItem("Tracks"));
 					for (var i = 0; i < data.tracks.items.length; i++) {
 						if (data.tracks.items[i]) {
-							spotifyHandler.dom.search.appendChild(spotifyHandler.createTrackItem(data.tracks.items[i], true, false));
+							spotifyHandler.dom.search.appendChild(spotifyHandler.createTrackItem(data.tracks.items[i], true, false, true));
 						}
 					}
 					anyResults = true;
