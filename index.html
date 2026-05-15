@@ -18,17 +18,17 @@
 
 		<link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
 		<link rel="stylesheet" href="styles.css">
+		<script src="helpers.js"></script>
 		<script>
 			// Generate state for CSRF protection (128 bits of entropy)
-			if (!localStorage.getItem("spotify_state")) {
+			if (!getCookie("spst")) {
 				var array = new Uint8Array(16);
 				window.crypto.getRandomValues(array);
-				var state = Array.from(array, function(b) { return b.toString(16).padStart(2, '0'); }).join('');
-				localStorage.setItem("spotify_state", state);
+				var stateVal = Array.from(array, function(b) { return b.toString(16).padStart(2, '0'); }).join('');
+				setCookie("spst", stateVal);
 			}
-			var state = localStorage.getItem("spotify_state");
+			var state = getCookie("spst");
 		</script>
-		<script src="helpers.js"></script>
 		<script src="page-handler.js"></script>
 		<script src="vibrant.min.js"></script>
 		<script src="spotify-web-api.js"></script>
