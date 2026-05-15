@@ -49,7 +49,7 @@ function getDeviceIcon(type) {
 			return "&#xe32d;";
 		case "tv":
 		case "stb":
-			return "&#xe333;"
+			return "&#xe333;";
 		case "gameconsole":
 			return "&#xe30f;";
 		case "castvideo":
