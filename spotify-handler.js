@@ -15,6 +15,7 @@ var spotifyHandler = {
 	volumeCooldown: false,
 
 	clientId: "958af218b7f249d38baf29604b851d57",
+	buildCommit: "75aa893",
 
 	generateCodeVerifier: function() {
 		var array = new Uint8Array(64);
@@ -750,6 +751,25 @@ var spotifyHandler = {
 		spotifyHandler.dom.search = document.getElementById("search");
 		spotifyHandler.dom.searchPage = document.getElementById("searchpage");
 		spotifyHandler.dom.searchBar = document.getElementById("searchbar");
+
+		// Settings
+		var deviceNameInput = document.getElementById("device-name-input");
+		var deviceNameSave = document.getElementById("device-name-save");
+		var settingsCommit = document.getElementById("settings-commit");
+		deviceNameInput.value = localStorage.getItem("spotify_device_name") || 'Spotify Web Controller';
+		settingsCommit.textContent = spotifyHandler.buildCommit;
+		deviceNameSave.addEventListener("click", function() {
+			var newName = deviceNameInput.value.trim();
+			if (newName) {
+				localStorage.setItem("spotify_device_name", newName);
+				if (spotifyHandler.webPlayer) {
+					spotifyHandler.webPlayer.setName(newName);
+				}
+				deviceNameSave.textContent = "Saved!";
+				setTimeout(function() { deviceNameSave.textContent = "Save"; }, 1500);
+			}
+		});
+
 		window.addEventListener("resize", spotifyHandler.fixArtSize);
 		spotifyHandler.dom.artwork.addEventListener("loadstart", function(event) {
 			spotifyHandler.dom.playerPage.style.background = null;
@@ -1007,7 +1027,7 @@ var spotifyHandler = {
 
 	createWebPlayer: function() {
 		var player = new Spotify.Player({
-			name: 'Spotify Web Controller',
+			name: localStorage.getItem("spotify_device_name") || 'Spotify Web Controller',
 			getOAuthToken: function(cb) {
 				// If token is still valid, use it; otherwise refresh first
 				if (new Date().getTime() < spotifyHandler.expires) {
