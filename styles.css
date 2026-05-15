@@ -185,8 +185,9 @@ p {
 }
 
 #art-holder {
-	margin: 24px;
+	margin: 4px 24px;
 	text-align: center;
+	transition: transform 0.5s ease;
 }
 
 #artwork {
@@ -195,6 +196,10 @@ p {
 	object-fit: cover;
 	background: #000000;
 	pointer-events: none;
+}
+
+#artwork.transitions-enabled {
+	transition: width 0.5s ease, height 0.5s ease;
 }
 
 #below-art-holder {
@@ -943,17 +948,6 @@ h2 {
 	background-position: center !important;
 }
 
-#playerpage.fullscreen-art::before {
-	content: '';
-	position: fixed;
-	top: 0;
-	left: 0;
-	right: 0;
-	bottom: 0;
-	background: rgba(0, 0, 0, 0.4);
-	z-index: 0;
-}
-
 #playerpage.fullscreen-art #below-art-holder {
 	position: fixed;
 	bottom: 0;
@@ -991,7 +985,11 @@ h2 {
 }
 
 /* Idle mode - hide controls */
-#playerpage.idle #topbar,
+#playerpage.idle #topbar {
+	opacity: 0;
+	pointer-events: none;
+}
+
 #playerpage.idle #controls-holder,
 #playerpage.idle #bottombar,
 #playerpage.idle #like-button,
@@ -999,6 +997,12 @@ h2 {
 	opacity: 0;
 	pointer-events: none;
 	transition: opacity 0.5s ease;
+}
+
+
+#playerpage.idle:not(.fullscreen-art) #art-holder {
+	transform: translateY(-42px);
+	transition: transform 0.5s ease;
 }
 
 #playerpage.idle #below-art-holder {
@@ -1010,6 +1014,20 @@ h2 {
 }
 
 #playerpage.idle.fullscreen-art.idle-compact #below-art-holder {
+	transform: translateY(calc(100% - 110px));
+}
+
+#playerpage.idle:not(.fullscreen-art) #below-art-holder {
+	z-index: 2;
+	
+	transform: translateY(calc(100% - 150px));
+}
+
+#playerpage.idle:not(.fullscreen-art) #artwork {
+	max-width: calc(100vw - 48px);
+}
+
+#playerpage.idle:not(.fullscreen-art).idle-compact #below-art-holder {
 	transform: translateY(calc(100% - 110px));
 }
 

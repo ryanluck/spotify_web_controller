@@ -335,23 +335,38 @@ var spotifyHandler = {
 
 	resetIdleTimer: function() {
 		spotifyHandler.dom.playerPage.classList.remove("idle");
+		spotifyHandler.fixArtSize();
 		clearTimeout(spotifyHandler.idleTimer);
 		spotifyHandler.idleTimer = setTimeout(function() {
 			if (pageHandler.shown == "playerpage") {
 				spotifyHandler.dom.playerPage.classList.add("idle");
+				spotifyHandler.fixArtSizeIdle();
 			}
 		}, spotifyHandler.idleDelay);
 	},
 
 	fixArtSize: function() {
-		var maxHeight = document.getElementById("below-art-holder").offsetTop - 42 - 48;
+		var belowArt = document.getElementById("below-art-holder");
+		var belowArtHeight = belowArt.offsetHeight;
+		var topSpace = 50; // topbar + small margin
+		var bottomMargin = 4;
+		var availableHeight = window.innerHeight - topSpace - belowArtHeight - bottomMargin;
 		var maxWidth = window.innerWidth - 48;
-		if (maxHeight < maxWidth) {
-			spotifyHandler.dom.artwork.style.width = maxHeight + "px";
+		var size = Math.min(availableHeight, maxWidth);
+		if (size > 0) {
+			spotifyHandler.dom.artwork.style.width = size + "px";
 		}
-		else {
-			spotifyHandler.dom.artwork.style.width = maxWidth + "px";
-		}
+	},
+
+	fixArtSizeIdle: function() {
+		if (spotifyHandler.dom.playerPage.classList.contains("fullscreen-art")) return;
+		var topSpace = 24; // margin only, art slides up over topbar
+		var isCompact = spotifyHandler.dom.playerPage.classList.contains("idle-compact");
+		var bottomSpace = isCompact ? 100 : 140; // more space needed when progress bar is shown
+		var idleHeight = window.innerHeight - topSpace - bottomSpace;
+		var maxWidth = window.innerWidth - 48;
+		var size = Math.min(idleHeight, maxWidth);
+		spotifyHandler.dom.artwork.style.width = size + "px";
 	},
 
 	updateTimes: function(prog, dur) {
@@ -873,7 +888,11 @@ var spotifyHandler = {
 			spotifyHandler.dom.themeColor.setAttribute("content", "#1DB954");
 		});
 		spotifyHandler.dom.artwork.addEventListener("load", function(event) {
-			spotifyHandler.fixArtSize();
+			if (spotifyHandler.dom.playerPage.classList.contains("idle")) {
+				spotifyHandler.fixArtSizeIdle();
+			} else {
+				spotifyHandler.fixArtSize();
+			}
 			if (event.target.src.indexOf("data:image/gif;base64") != 0) {
 				if (spotifyHandler.dom.playerPage.classList.contains("fullscreen-art")) {
 					spotifyHandler.dom.playerPage.style.backgroundImage = "url(" + event.target.src + ")";
@@ -1043,10 +1062,12 @@ var spotifyHandler = {
 			if (spotifyHandler.dom.playerPage.classList.contains("idle")) {
 				// Exit idle
 				spotifyHandler.dom.playerPage.classList.remove("idle");
+				spotifyHandler.fixArtSize();
 				clearTimeout(spotifyHandler.idleTimer);
 				spotifyHandler.idleTimer = setTimeout(function() {
 					if (pageHandler.shown == "playerpage") {
 						spotifyHandler.dom.playerPage.classList.add("idle");
+						spotifyHandler.fixArtSizeIdle();
 					}
 				}, spotifyHandler.idleDelay);
 				idleToggleCooldown = true;
@@ -1062,6 +1083,7 @@ var spotifyHandler = {
 			if (!isInteractive) {
 				clearTimeout(spotifyHandler.idleTimer);
 				spotifyHandler.dom.playerPage.classList.add("idle");
+				spotifyHandler.fixArtSizeIdle();
 				idleToggleCooldown = true;
 				setTimeout(function() { idleToggleCooldown = false; }, 300);
 			} else {
@@ -1159,6 +1181,10 @@ var spotifyHandler = {
 		spotifyHandler.refreshDevices();
 		spotifyHandler.loadLibrary();
 		spotifyHandler.initWebPlayer();
+		// Enable art transitions after initial layout
+		setTimeout(function() {
+			spotifyHandler.dom.artwork.classList.add("transitions-enabled");
+		}, 1000);
 	},
 
 	runCapabilityChecks: function() {
