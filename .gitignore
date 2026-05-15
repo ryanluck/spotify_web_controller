@@ -1,0 +1,5 @@
+.vscode/
+.DS_Store
+*.pem
+serve.py
+node_modules/

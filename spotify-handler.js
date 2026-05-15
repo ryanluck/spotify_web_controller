@@ -635,10 +635,10 @@ var spotifyHandler = {
 	},
 
 	createPlaylistOrAlbumItem: function(tempData) {
-		playlistElem = document.createElement("li");
+		var playlistElem = document.createElement("li");
 		playlistElem.className = "queue-item";
 		playlistElem.setAttribute("data-uri", tempData.uri);
-		tempArtists = [];
+		var tempArtists = [];
 		if ("artists" in tempData) {
 			for (var j = 0; j < tempData.artists.length; j++) {
 				tempArtists.push(stripTags(tempData.artists[j].name));
@@ -651,7 +651,7 @@ var spotifyHandler = {
 
 	addPlaylists: function(data) {
 		for (var i = 0; i < data.length; i++) {
-			tempData = data[i];
+			var tempData = data[i];
 			if ("album" in tempData) {
 				tempData = tempData.album;
 			}
@@ -660,13 +660,14 @@ var spotifyHandler = {
 	},
 
 	createDividerItem: function(content) {
-		divider = document.createElement("li");
+		var divider = document.createElement("li");
 		divider.className = "queue-item divider";
 		divider.innerHTML = content;
 		return (divider);
 	},
 
 	searchReq: null,
+	searchDebounce: null,
 	search: function(q) {
 		if (spotifyHandler.searchReq != null) {
 			spotifyHandler.searchReq.abort();
@@ -723,7 +724,6 @@ var spotifyHandler = {
 		spotifyHandler.dom.likeButton = document.getElementById("like-button");
 		spotifyHandler.dom.playbackTime = document.getElementById("playback-time");
 		spotifyHandler.dom.durationTime = document.getElementById("duration-time");
-		spotifyHandler.dom.likeButton = document.getElementById("like-button");
 		spotifyHandler.dom.shuffleButton = document.getElementById("shuffle-button");
 		spotifyHandler.dom.previousButton = document.getElementById("previous-button");
 		spotifyHandler.dom.playPauseButton = document.getElementById("play-pause-button");
@@ -904,7 +904,10 @@ var spotifyHandler = {
 		});
 
 		spotifyHandler.dom.searchBar.addEventListener("input", function(event) {
-			spotifyHandler.search(event.target.value);
+			clearTimeout(spotifyHandler.searchDebounce);
+			spotifyHandler.searchDebounce = setTimeout(function() {
+				spotifyHandler.search(event.target.value);
+			}, 300);
 		});
 
 		if ('mediaSession' in navigator)
@@ -922,7 +925,7 @@ var spotifyHandler = {
 		var urlState = urlParams.get("state");
 		var urlError = urlParams.get("error");
 
-		if (code && parseInt(urlState) == state) {
+		if (code && urlState === state) {
 			// Clean the URL
 			window.history.replaceState({}, document.title, window.location.pathname);
 			// Exchange authorization code for access token
@@ -942,7 +945,7 @@ var spotifyHandler = {
 				spotifyHandler.startPlayback();
 			});
 		}
-		else if (urlError && parseInt(urlState) == state) {
+		else if (urlError && urlState === state) {
 			if (urlError != "access_denied") {
 				alert("An error occurred connecting to your Spotify account: " + urlError);
 			}
@@ -975,12 +978,15 @@ var spotifyHandler = {
 
 	startPlayback: function() {
 		setInterval(spotifyHandler.checkAccessToken, 30000);
-		setInterval(spotifyHandler.refreshDevices, 5000);
-		setInterval(spotifyHandler.setCurrentlyPlaying, 1000);
+		setInterval(spotifyHandler.refreshDevices, 10000);
+		setInterval(spotifyHandler.setCurrentlyPlaying, 5000);
 		setTimeout(function() {
 			setInterval(function() {
-				if (spotifyHandler.lastPlaybackStatus.is_playing) {
-					progressBar.setValue(((spotifyHandler.lastPlaybackStatus.progress_ms + 500) / spotifyHandler.lastPlaybackStatus.item.duration_ms) * 100);
+				if (spotifyHandler.lastPlaybackStatus.is_playing && !progressBar.hovering) {
+					spotifyHandler.progress += 1;
+					var progressPerc = (spotifyHandler.progress / spotifyHandler.duration) * 100;
+					progressBar.setValue(progressPerc);
+					spotifyHandler.updateTimes(spotifyHandler.progress, spotifyHandler.duration);
 				}
 			}, 1000);
 		}, 500);
