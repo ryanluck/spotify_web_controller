@@ -159,9 +159,9 @@ var spotifyHandler = {
 						if (data.context != null) {
 							switch (data.context.type) {
 								case "playlist": {
+									spotifyHandler.dom.playingFrom.innerHTML = "Playing from playlist";
 									spotifyHandler.api.getPlaylist(data.context.uri.split(":").pop(), {fields: "name,id"}, function(err, data) {
 										if (!err && data) {
-											spotifyHandler.dom.playingFrom.innerHTML = "Playing from playlist";
 											spotifyHandler.dom.playingFromName.innerHTML = stripTags(data.name);
 											spotifyHandler.dom.contextName.innerHTML = stripTags(data.name);
 											spotifyHandler.fillQueue("playlist", data.id);
@@ -170,9 +170,9 @@ var spotifyHandler = {
 									break;
 								}
 								case "album": {
+									spotifyHandler.dom.playingFrom.innerHTML = "Playing from album";
 									spotifyHandler.api.getAlbum(data.context.uri.split(":").pop(), {}, function(err, data) {
 										if (!err && data) {
-											spotifyHandler.dom.playingFrom.innerHTML = "Playing from album";
 											spotifyHandler.dom.playingFromName.innerHTML = stripTags(data.name);
 											spotifyHandler.dom.contextName.innerHTML = stripTags(data.name);
 											spotifyHandler.fillQueue("album", data.id);
@@ -181,9 +181,9 @@ var spotifyHandler = {
 									break;
 								}
 								case "artist": {
+									spotifyHandler.dom.playingFrom.innerHTML = "Playing from artist";
 									spotifyHandler.api.getArtist(data.context.uri.split(":").pop(), {}, function(err, data) {
 										if (!err && data) {
-											spotifyHandler.dom.playingFrom.innerHTML = "Playing from artist";
 											spotifyHandler.dom.playingFromName.innerHTML = stripTags(data.name);
 											spotifyHandler.dom.contextName.innerHTML = stripTags(data.name);
 											spotifyHandler.fillQueue("artist", data.id);
