@@ -784,6 +784,32 @@ var spotifyHandler = {
 			}
 		});
 
+		// Display mode
+		var modeStandard = document.getElementById("mode-standard");
+		var modeFullscreen = document.getElementById("mode-fullscreen");
+		var currentMode = localStorage.getItem("spotify_display_mode") || "fullscreen";
+		if (currentMode === "fullscreen") {
+			modeFullscreen.classList.add("active");
+			modeStandard.classList.remove("active");
+			spotifyHandler.dom.playerPage.classList.add("fullscreen-art");
+		}
+		modeStandard.addEventListener("click", function() {
+			localStorage.setItem("spotify_display_mode", "standard");
+			modeStandard.classList.add("active");
+			modeFullscreen.classList.remove("active");
+			spotifyHandler.dom.playerPage.classList.remove("fullscreen-art");
+			spotifyHandler.dom.playerPage.style.backgroundImage = "";
+		});
+		modeFullscreen.addEventListener("click", function() {
+			localStorage.setItem("spotify_display_mode", "fullscreen");
+			modeFullscreen.classList.add("active");
+			modeStandard.classList.remove("active");
+			spotifyHandler.dom.playerPage.classList.add("fullscreen-art");
+			if (spotifyHandler.dom.artwork.src && spotifyHandler.dom.artwork.src.indexOf("data:image") !== 0) {
+				spotifyHandler.dom.playerPage.style.backgroundImage = "url(" + spotifyHandler.dom.artwork.src + ")";
+			}
+		});
+
 		// Capability checks
 		spotifyHandler.runCapabilityChecks();
 
@@ -806,29 +832,36 @@ var spotifyHandler = {
 
 		window.addEventListener("resize", spotifyHandler.fixArtSize);
 		spotifyHandler.dom.artwork.addEventListener("loadstart", function(event) {
-			spotifyHandler.dom.playerPage.style.background = null;
+			if (!spotifyHandler.dom.playerPage.classList.contains("fullscreen-art")) {
+				spotifyHandler.dom.playerPage.style.background = null;
+			}
 			spotifyHandler.dom.themeColor.setAttribute("content", "#1DB954");
 		});
 		spotifyHandler.dom.artwork.addEventListener("load", function(event) {
 			spotifyHandler.fixArtSize();
 			if (event.target.src.indexOf("data:image/gif;base64") != 0) {
-				var vibrant = new Vibrant(event.target);
-				var swatches = vibrant.swatches();
-				if (swatches.Vibrant != undefined) {
-					spotifyHandler.dom.playerPage.style.background = "linear-gradient(rgba("+swatches.Vibrant.rgb.join(",")+",0.7), #15161A 75%)";
-					spotifyHandler.dom.themeColor.setAttribute("content", swatches.Vibrant.getHex());
-				}
-				else if (swatches.Muted != undefined) {
-					spotifyHandler.dom.playerPage.style.background = "linear-gradient(rgba("+swatches.Muted.rgb.join(",")+",0.7), #15161A 75%)";
-					spotifyHandler.dom.themeColor.setAttribute("content", swatches.Muted.getHex());
-				}
-				else {
-					spotifyHandler.dom.playerPage.style.background = null;
-					spotifyHandler.dom.themeColor.setAttribute("content", "#1DB954");
+				if (spotifyHandler.dom.playerPage.classList.contains("fullscreen-art")) {
+					spotifyHandler.dom.playerPage.style.backgroundImage = "url(" + event.target.src + ")";
+				} else {
+					var vibrant = new Vibrant(event.target);
+					var swatches = vibrant.swatches();
+					if (swatches.Vibrant != undefined) {
+						spotifyHandler.dom.playerPage.style.background = "linear-gradient(rgba("+swatches.Vibrant.rgb.join(",")+",0.7), #15161A 75%)";
+						spotifyHandler.dom.themeColor.setAttribute("content", swatches.Vibrant.getHex());
+					}
+					else if (swatches.Muted != undefined) {
+						spotifyHandler.dom.playerPage.style.background = "linear-gradient(rgba("+swatches.Muted.rgb.join(",")+",0.7), #15161A 75%)";
+						spotifyHandler.dom.themeColor.setAttribute("content", swatches.Muted.getHex());
+					}
+					else {
+						spotifyHandler.dom.playerPage.style.background = null;
+						spotifyHandler.dom.themeColor.setAttribute("content", "#1DB954");
+					}
 				}
 			}
 			else {
 				spotifyHandler.dom.playerPage.style.background = null;
+				spotifyHandler.dom.playerPage.style.backgroundImage = "";
 				spotifyHandler.dom.themeColor.setAttribute("content", "#1DB954");
 			}
 		});

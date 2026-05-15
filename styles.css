@@ -903,3 +903,89 @@ h2 {
 .discover-option {
 	margin-bottom: 32px;
 }
+
+/* Display mode toggle */
+.settings-toggle {
+	display: flex;
+	gap: 8px;
+	margin-top: 8px;
+}
+
+.mode-btn {
+	flex: 1;
+	padding: 10px 16px;
+	border-radius: 500px;
+	background: #282828;
+	color: #B3B3B3;
+	font-size: 14px;
+	font-weight: 500;
+	border: none;
+	cursor: pointer;
+}
+
+.mode-btn.active {
+	background: #1DB954;
+	color: #FFFFFF;
+}
+
+/* Fullscreen Art Mode */
+#playerpage.fullscreen-art #art-holder {
+	display: none;
+}
+
+#playerpage.fullscreen-art #topbar {
+	position: relative;
+	z-index: 2;
+}
+
+#playerpage.fullscreen-art {
+	background-size: cover !important;
+	background-position: center !important;
+}
+
+#playerpage.fullscreen-art::before {
+	content: '';
+	position: fixed;
+	top: 0;
+	left: 0;
+	right: 0;
+	bottom: 0;
+	background: rgba(0, 0, 0, 0.4);
+	z-index: 0;
+}
+
+#playerpage.fullscreen-art #below-art-holder {
+	position: fixed;
+	bottom: 0;
+	left: 0;
+	right: 0;
+	z-index: 2;
+	padding: 24px 32px 16px 32px;
+	background: linear-gradient(transparent, rgba(0, 0, 0, 0.8) 30%);
+}
+
+#playerpage.fullscreen-art #title {
+	font-size: 28px;
+}
+
+#playerpage.fullscreen-art #artist {
+	font-size: 20px;
+}
+
+#playerpage.fullscreen-art .main-button {
+	font-size: 80px;
+	width: 88px;
+	height: 70px;
+}
+
+#playerpage.fullscreen-art .skip-button {
+	font-size: 48px;
+	width: 60px;
+	height: 60px;
+}
+
+#playerpage.fullscreen-art .side-button {
+	font-size: 24px;
+	width: 50px;
+	height: 50px;
+}
