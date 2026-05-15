@@ -362,9 +362,13 @@ var spotifyHandler = {
 							}
 						}
 						else {
-							tempList += '<li class="devicelist-item" onclick="spotifyHandler.transferPlayback(\''+data.devices[i].id+'\')"><span class="devicelist-icon material-icons">'+getDeviceIcon(data.devices[i].type.toLowerCase())+'</span><span class="devicelist-name">'+stripTags(data.devices[i].name)+'</span></li>';
+							if (isValidSpotifyId(data.devices[i].id)) {
+								tempList += '<li class="devicelist-item" onclick="spotifyHandler.transferPlayback(\''+data.devices[i].id+'\')"><span class="devicelist-icon material-icons">'+getDeviceIcon(data.devices[i].type.toLowerCase())+'</span><span class="devicelist-name">'+stripTags(data.devices[i].name)+'</span></li>';
+							}
 						}
-						tempListDis += '<li class="devicelist-item" onclick="spotifyHandler.startPlaySession(\''+data.devices[i].id+'\')"><span class="devicelist-icon material-icons">'+getDeviceIcon(data.devices[i].type.toLowerCase())+'</span><span class="devicelist-name">'+stripTags(data.devices[i].name)+'</span></li>';
+						if (isValidSpotifyId(data.devices[i].id)) {
+							tempListDis += '<li class="devicelist-item" onclick="spotifyHandler.startPlaySession(\''+data.devices[i].id+'\')"><span class="devicelist-icon material-icons">'+getDeviceIcon(data.devices[i].type.toLowerCase())+'</span><span class="devicelist-name">'+stripTags(data.devices[i].name)+'</span></li>';
+						}
 					}
 					spotifyHandler.dom.deviceList.innerHTML = tempList;
 					spotifyHandler.dom.discoverList.innerHTML = tempListDis;
@@ -475,8 +479,12 @@ var spotifyHandler = {
 		for (var j = 0; j < tempTrack.artists.length; j++) {
 			tempArtists.push(stripTags(tempTrack.artists[j].name));
 		}
-		var addToQueueBtn = showAddToQueue ? '<button class="queue-add-btn material-icons" onclick="event.stopPropagation(); spotifyHandler.addToQueue(\''+tempTrack.uri+'\', this);" title="Add to queue">&#xe05f;</button>' : '';
-		trackElem.innerHTML = (doCover ? '<div class="queue-item-cover"><img src="'+(tempTrack.album.images.length > 0 ? tempTrack.album.images.pop().url : 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7')+'"></div>': '<div class="queue-item-cover"><span>'+(tempTrack.disc_number > 1 ? tempTrack.disc_number+'-' : '')+tempTrack.track_number+'</span></div>')+'<div class="queue-item-metadata"><div class="queue-item-name">'+stripTags(tempTrack.name)+'</div><div class="queue-item-artist">'+tempArtists.join(', ')+'</div></div>'+addToQueueBtn;
+		var addToQueueBtn = '';
+		if (showAddToQueue && isValidSpotifyUri(tempTrack.uri)) {
+			addToQueueBtn = '<button class="queue-add-btn material-icons" onclick="event.stopPropagation(); spotifyHandler.addToQueue(\''+tempTrack.uri+'\', this);" title="Add to queue">&#xe05f;</button>';
+		}
+		var imgUrl = (doCover && tempTrack.album && tempTrack.album.images.length > 0) ? sanitizeImageUrl(tempTrack.album.images.pop().url) : 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7';
+		trackElem.innerHTML = (doCover ? '<div class="queue-item-cover"><img src="'+imgUrl+'"></div>': '<div class="queue-item-cover"><span>'+(tempTrack.disc_number > 1 ? tempTrack.disc_number+'-' : '')+tempTrack.track_number+'</span></div>')+'<div class="queue-item-metadata"><div class="queue-item-name">'+stripTags(tempTrack.name)+'</div><div class="queue-item-artist">'+tempArtists.join(', ')+'</div></div>'+addToQueueBtn;
 		return (trackElem);
 	},
 
@@ -600,7 +608,8 @@ var spotifyHandler = {
 			}
 		}
 		playlistElem.setAttribute("onclick", "spotifyHandler.playContext(this.getAttribute('data-uri'), null); pageHandler.showPage('playerpage');");
-		playlistElem.innerHTML = '<div class="queue-item-cover"><img src="'+(tempData.images.length > 0 ? tempData.images.pop().url : 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7')+'"></div><div class="queue-item-metadata"><div class="queue-item-name">'+stripTags(tempData.name)+'</div><div class="queue-item-artist">'+("artists" in tempData ? tempArtists.join(", ") : 'by '+stripTags(tempData.owner.display_name))+'</div></div>';
+		var imgUrl = (tempData.images && tempData.images.length > 0) ? sanitizeImageUrl(tempData.images.pop().url) : 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7';
+		playlistElem.innerHTML = '<div class="queue-item-cover"><img src="'+imgUrl+'"></div><div class="queue-item-metadata"><div class="queue-item-name">'+stripTags(tempData.name)+'</div><div class="queue-item-artist">'+("artists" in tempData ? tempArtists.join(", ") : 'by '+stripTags(tempData.owner.display_name))+'</div></div>';
 		return (playlistElem);
 	},
 
@@ -609,7 +618,7 @@ var spotifyHandler = {
 		artistElem.className = "queue-item";
 		artistElem.setAttribute("data-uri", artist.uri);
 		artistElem.setAttribute("onclick", "spotifyHandler.playContext(this.getAttribute('data-uri'), null);");
-		var imgSrc = (artist.images && artist.images.length > 0) ? artist.images[artist.images.length - 1].url : 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7';
+		var imgSrc = (artist.images && artist.images.length > 0) ? sanitizeImageUrl(artist.images[artist.images.length - 1].url) : 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7';
 		artistElem.innerHTML = '<div class="queue-item-cover"><img src="'+imgSrc+'"></div><div class="queue-item-metadata"><div class="queue-item-name">'+stripTags(artist.name)+'</div><div class="queue-item-artist">Artist</div></div>';
 		return artistElem;
 	},

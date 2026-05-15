@@ -1,7 +1,6 @@
 function stripTags(text) {
-	var tmp = document.createElement("div");
-	tmp.innerHTML = text;
-	return tmp.textContent || tmp.innerText;
+	var doc = new DOMParser().parseFromString(text, 'text/html');
+	return doc.body.textContent || '';
 }
 
 function getCookie(name) {
@@ -63,4 +62,19 @@ function getDeviceIcon(type) {
 		default:
 			return "&#xe337;";
 	}
+}
+
+function sanitizeImageUrl(url) {
+	if (url && (url.indexOf('https://') === 0 || url.indexOf('data:image/') === 0)) {
+		return url;
+	}
+	return 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7';
+}
+
+function isValidSpotifyId(id) {
+	return /^[a-zA-Z0-9]+$/.test(id);
+}
+
+function isValidSpotifyUri(uri) {
+	return /^spotify:[a-z]+:[a-zA-Z0-9]+$/.test(uri);
 }
