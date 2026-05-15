@@ -437,6 +437,9 @@ var spotifyHandler = {
 					spotifyHandler.transferringPlayback = false;
 				}
 				else {
+					if (pageHandler.shown == "devicespage") {
+						pageHandler.showPage("playerpage");
+					}
 					setTimeout(function() {
 						spotifyHandler.refreshDevices();
 						spotifyHandler.transferringPlayback = false;
