@@ -234,13 +234,13 @@ p {
 }
 
 #title {
-	font-size: 19px;
+	font-size: 24px;
 	font-weight: bold;
 }
 
 #artist {
 	color: #B3B3B3;
-	font-size: 17px;
+	font-size: 20px;
 }
 
 #like-button {
@@ -965,11 +965,11 @@ h2 {
 }
 
 #playerpage.fullscreen-art #title {
-	font-size: 28px;
+	font-size: 40px;
 }
 
 #playerpage.fullscreen-art #artist {
-	font-size: 20px;
+	font-size: 32px;
 }
 
 #playerpage.fullscreen-art .main-button {
