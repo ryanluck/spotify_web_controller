@@ -360,6 +360,7 @@ var spotifyHandler = {
 	},
 
 	releaseWakeLock: function() {
+		if (localStorage.getItem("spotify_keep_screen_on") === "true") return;
 		if (spotifyHandler.wakeLock) {
 			spotifyHandler.wakeLock.release();
 			spotifyHandler.wakeLock = null;
@@ -903,6 +904,21 @@ var spotifyHandler = {
 		// Capability checks
 		spotifyHandler.runCapabilityChecks();
 
+		// Keep screen on toggle
+		var keepScreenOnCheckbox = document.getElementById("keep-screen-on");
+		keepScreenOnCheckbox.checked = localStorage.getItem("spotify_keep_screen_on") === "true";
+		if (keepScreenOnCheckbox.checked) {
+			spotifyHandler.acquireWakeLock();
+		}
+		keepScreenOnCheckbox.addEventListener("change", function() {
+			localStorage.setItem("spotify_keep_screen_on", keepScreenOnCheckbox.checked);
+			if (keepScreenOnCheckbox.checked) {
+				spotifyHandler.acquireWakeLock();
+			} else if (!spotifyHandler.lastPlaybackStatus.is_playing) {
+				spotifyHandler.releaseWakeLock();
+			}
+		});
+
 		// Web playback toggle
 		var webPlaybackCheckbox = document.getElementById("enable-web-playback");
 		var deviceNameSection = document.getElementById("device-name-section");
@@ -1096,8 +1112,10 @@ var spotifyHandler = {
 
 		// Re-acquire wake lock when page becomes visible
 		document.addEventListener('visibilitychange', function() {
-			if (!document.hidden && spotifyHandler.lastPlaybackStatus.is_playing) {
-				spotifyHandler.acquireWakeLock();
+			if (!document.hidden) {
+				if (spotifyHandler.lastPlaybackStatus.is_playing || localStorage.getItem("spotify_keep_screen_on") === "true") {
+					spotifyHandler.acquireWakeLock();
+				}
 			}
 		});
 
