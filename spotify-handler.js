@@ -128,13 +128,28 @@ var spotifyHandler = {
 		}
 	},
 
+	rateLimited: false,
+	rateLimitBackoff: 30000,
+
 	setCurrentlyPlaying: function() {
-		if (!document.hidden) {
+		if (!document.hidden && !spotifyHandler.rateLimited) {
 			spotifyHandler.api.getMyCurrentPlaybackState({}, function(err, data) {
 				if (err) {
-					console.error(err);
+					// Check for rate limiting (429)
+					if (err.status === 429) {
+						spotifyHandler.rateLimited = true;
+						setTimeout(function() {
+							spotifyHandler.rateLimited = false;
+						}, spotifyHandler.rateLimitBackoff);
+						// Double backoff for next time, max 5 minutes
+						spotifyHandler.rateLimitBackoff = Math.min(spotifyHandler.rateLimitBackoff * 2, 300000);
+					} else {
+						// Reset backoff on non-429 errors
+						spotifyHandler.rateLimitBackoff = 30000;
+					}
 				}
 				else if (data != undefined && typeof data != "string" && data.item != null) {
+					spotifyHandler.rateLimitBackoff = 30000; // Reset backoff on success
 					spotifyHandler.lastPlaybackStatus = data;
 					if (pageHandler.shown == "discoverpage") {
 						pageHandler.showPage("playerpage");
@@ -397,10 +412,14 @@ var spotifyHandler = {
 	},
 
 	refreshDevices: function() {
-		if (!document.hidden) {
+		if (!document.hidden && !spotifyHandler.rateLimited) {
 			spotifyHandler.api.getMyDevices(function(err, data) {
 				if (err) {
-					console.error(err);
+					if (err.status === 429) {
+						spotifyHandler.rateLimited = true;
+						setTimeout(function() { spotifyHandler.rateLimited = false; }, spotifyHandler.rateLimitBackoff);
+						spotifyHandler.rateLimitBackoff = Math.min(spotifyHandler.rateLimitBackoff * 2, 300000);
+					}
 					spotifyHandler.dom.deviceList.innerHTML = "";
 				}
 				else {
@@ -1216,7 +1235,17 @@ var spotifyHandler = {
 		var pollInterval = sdkEnabled ? 5000 : 1000;
 		setInterval(spotifyHandler.checkAccessToken, 30000);
 		setInterval(spotifyHandler.refreshDevices, 10000);
-		setInterval(spotifyHandler.setCurrentlyPlaying, pollInterval);
+		setInterval(function() {
+			if (spotifyHandler.lastPlaybackStatus.is_playing) {
+				spotifyHandler.setCurrentlyPlaying();
+			}
+		}, pollInterval);
+		// Slower poll when not playing
+		setInterval(function() {
+			if (!spotifyHandler.lastPlaybackStatus.is_playing) {
+				spotifyHandler.setCurrentlyPlaying();
+			}
+		}, 10000);
 		setTimeout(function() {
 			setInterval(function() {
 				if (spotifyHandler.lastPlaybackStatus.is_playing && !progressBar.hovering) {
@@ -1243,7 +1272,7 @@ var spotifyHandler = {
 		}
 		pageHandler.showPage("playerpage");
 		spotifyHandler.setCurrentlyPlaying();
-		spotifyHandler.refreshDevices();
+		setTimeout(function() { spotifyHandler.refreshDevices(); }, 2000);
 		spotifyHandler.loadLibrary();
 		spotifyHandler.initWebPlayer();
 		// Enable art transitions after initial layout
