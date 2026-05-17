@@ -1232,9 +1232,9 @@ var spotifyHandler = {
 
 	startPlayback: function() {
 		var sdkEnabled = localStorage.getItem("spotify_web_playback") === "true";
-		var pollInterval = sdkEnabled ? 5000 : 1000;
+		var pollInterval = sdkEnabled ? 5000 : 5000;
 		setInterval(spotifyHandler.checkAccessToken, 30000);
-		setInterval(spotifyHandler.refreshDevices, 10000);
+		setInterval(spotifyHandler.refreshDevices, 30000);
 		setInterval(function() {
 			if (spotifyHandler.lastPlaybackStatus.is_playing) {
 				spotifyHandler.setCurrentlyPlaying();
@@ -1245,7 +1245,7 @@ var spotifyHandler = {
 			if (!spotifyHandler.lastPlaybackStatus.is_playing) {
 				spotifyHandler.setCurrentlyPlaying();
 			}
-		}, 10000);
+		}, 30000);
 		setTimeout(function() {
 			setInterval(function() {
 				if (spotifyHandler.lastPlaybackStatus.is_playing && !progressBar.hovering) {
