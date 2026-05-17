@@ -130,6 +130,7 @@ var spotifyHandler = {
 
 	rateLimited: false,
 	rateLimitBackoff: 30000,
+	fastPollUntil: 0,
 
 	setCurrentlyPlaying: function() {
 		if (!document.hidden && !spotifyHandler.rateLimited) {
@@ -361,6 +362,11 @@ var spotifyHandler = {
 				spotifyHandler.fixArtSizeIdle();
 			}
 		}, spotifyHandler.idleDelay);
+	},
+
+	startFastPoll: function() {
+		spotifyHandler.fastPollUntil = Date.now() + 10000;
+		spotifyHandler.setCurrentlyPlaying();
 	},
 
 	acquireWakeLock: function() {
@@ -1001,9 +1007,7 @@ var spotifyHandler = {
 					spotifyHandler.dom.playPauseButton.disabled = false;
 					spotifyHandler.dom.playPauseButton.innerHTML = "&#xe038;";
 					spotifyHandler.dom.playPauseButton.title = "Play";
-					setTimeout(function() {
-						spotifyHandler.setCurrentlyPlaying();
-					}, 250);
+					spotifyHandler.startFastPoll();
 				});
 			}
 			else {
@@ -1011,9 +1015,7 @@ var spotifyHandler = {
 					spotifyHandler.dom.playPauseButton.disabled = false;
 					spotifyHandler.dom.playPauseButton.innerHTML = "&#xe035;";
 					spotifyHandler.dom.playPauseButton.title = "Pause";
-					setTimeout(function() {
-						spotifyHandler.setCurrentlyPlaying();
-					}, 250);
+					spotifyHandler.startFastPoll();
 				});
 			}
 		});
@@ -1021,18 +1023,14 @@ var spotifyHandler = {
 			spotifyHandler.dom.nextButton.disabled = true;
 			spotifyHandler.api.skipToNext({}, function() {
 				spotifyHandler.dom.nextButton.disabled = false;
-				setTimeout(function() {
-					spotifyHandler.setCurrentlyPlaying();
-				}, 250);
+				spotifyHandler.startFastPoll();
 			});
 		});
 		spotifyHandler.dom.previousButton.addEventListener("click", function(event) {
 			spotifyHandler.dom.previousButton.disabled = true;
 			spotifyHandler.api.skipToPrevious({}, function() {
 				spotifyHandler.dom.previousButton.disabled = false;
-				setTimeout(function() {
-					spotifyHandler.setCurrentlyPlaying();
-				}, 250);
+				spotifyHandler.startFastPoll();
 			});
 		});
 		spotifyHandler.dom.likeButton.addEventListener("click", function(event) {
@@ -1072,13 +1070,8 @@ var spotifyHandler = {
 			spotifyHandler.dom.shuffleButton.disabled = true;
 			spotifyHandler.api.setShuffle(!spotifyHandler.lastPlaybackStatus.shuffle_state, {}, function(err, data) {
 				spotifyHandler.dom.shuffleButton.disabled = false;
-				if (err) {
-					console.error(err);
-				}
-				else {
-					setTimeout(function() {
-						spotifyHandler.setCurrentlyPlaying();
-					}, 250);
+				if (!err) {
+					spotifyHandler.startFastPoll();
 				}
 			});
 		});
@@ -1091,13 +1084,8 @@ var spotifyHandler = {
 			};
 			spotifyHandler.api.setRepeat(newState[spotifyHandler.lastPlaybackStatus.repeat_state], {}, function(err, data) {
 				spotifyHandler.dom.repeatButton.disabled = false;
-				if (err) {
-					console.error(err);
-				}
-				else {
-					setTimeout(function() {
-						spotifyHandler.setCurrentlyPlaying();
-					}, 250);
+				if (!err) {
+					spotifyHandler.startFastPoll();
 				}
 			});
 		});
@@ -1236,16 +1224,22 @@ var spotifyHandler = {
 		var pollInterval = sdkEnabled ? 5000 : 5000;
 		setInterval(spotifyHandler.checkAccessToken, 30000);
 		setInterval(function() {
-			if (spotifyHandler.lastPlaybackStatus.is_playing) {
+			if (spotifyHandler.lastPlaybackStatus.is_playing && Date.now() >= spotifyHandler.fastPollUntil) {
 				spotifyHandler.setCurrentlyPlaying();
 			}
 		}, pollInterval);
 		// Slower poll when not playing
 		setInterval(function() {
-			if (!spotifyHandler.lastPlaybackStatus.is_playing) {
+			if (!spotifyHandler.lastPlaybackStatus.is_playing && Date.now() >= spotifyHandler.fastPollUntil) {
 				spotifyHandler.setCurrentlyPlaying();
 			}
 		}, 30000);
+		// Fast poll (1s) after user interaction
+		setInterval(function() {
+			if (Date.now() < spotifyHandler.fastPollUntil) {
+				spotifyHandler.setCurrentlyPlaying();
+			}
+		}, 1000);
 		setTimeout(function() {
 			setInterval(function() {
 				if (spotifyHandler.lastPlaybackStatus.is_playing && !progressBar.hovering) {
