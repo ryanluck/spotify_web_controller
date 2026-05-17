@@ -1136,6 +1136,7 @@ var spotifyHandler = {
 				// Exit idle
 				spotifyHandler.dom.playerPage.classList.remove("idle");
 				spotifyHandler.fixArtSize();
+				spotifyHandler.startFastPoll();
 				clearTimeout(spotifyHandler.idleTimer);
 				spotifyHandler.idleTimer = setTimeout(function() {
 					if (pageHandler.shown == "playerpage") {
