@@ -1061,6 +1061,7 @@ var spotifyHandler = {
 			}
 		});
 		spotifyHandler.dom.devicesButton.addEventListener("click", function(event) {
+			spotifyHandler.refreshDevices();
 			pageHandler.showPage("devicespage");
 		});
 		spotifyHandler.dom.queueButton.addEventListener("click", function(event) {
@@ -1234,7 +1235,6 @@ var spotifyHandler = {
 		var sdkEnabled = localStorage.getItem("spotify_web_playback") === "true";
 		var pollInterval = sdkEnabled ? 5000 : 5000;
 		setInterval(spotifyHandler.checkAccessToken, 30000);
-		setInterval(spotifyHandler.refreshDevices, 30000);
 		setInterval(function() {
 			if (spotifyHandler.lastPlaybackStatus.is_playing) {
 				spotifyHandler.setCurrentlyPlaying();
