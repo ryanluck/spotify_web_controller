@@ -341,6 +341,7 @@ var spotifyHandler = {
 					// Playing something (likely a podcast) but item details not available in dev mode
 					spotifyHandler.rateLimitBackoff = 30000;
 					spotifyHandler.lastPlaybackStatus = data;
+					spotifyHandler.lastTrackId = "episode";
 					if (pageHandler.shown == "discoverpage") {
 						pageHandler.showPage("playerpage");
 					}
@@ -353,9 +354,10 @@ var spotifyHandler = {
 				}
 				else {
 					if (spotifyHandler.lastTrackId != "null2") {
-						setTimeout(function() {
-							spotifyHandler.refreshDevices();
-						}, 500);
+						// Something was playing before (track or podcast), now paused/stopped
+						spotifyHandler.dom.playPauseButton.title = "Play";
+						spotifyHandler.dom.playPauseButton.innerHTML = "&#xe038;";
+						spotifyHandler.releaseWakeLock();
 					}
 					// If web player is ready, transfer playback to it
 					if (spotifyHandler.webPlayerDeviceId && !spotifyHandler.webPlayerActivated) {
