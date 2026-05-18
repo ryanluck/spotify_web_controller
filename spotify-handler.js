@@ -160,19 +160,25 @@ var spotifyHandler = {
 					}
 					if (data.item.id != spotifyHandler.lastTrackId) {
 						spotifyHandler.lastTrackId = data.item.id;
-						if (data.item.album.images.length > 0) {
-							spotifyHandler.dom.artwork.src = data.item.album.images[0].url;
+						// Handle both tracks and podcast episodes
+						var images = data.item.album ? data.item.album.images : data.item.images;
+						if (images && images.length > 0) {
+							spotifyHandler.dom.artwork.src = images[0].url;
 						}
 						else {
 							spotifyHandler.dom.artwork.src = "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7";
 						}
 						spotifyHandler.dom.title.innerHTML = stripTags(data.item.name);
 						var tempArtists = "";
-						for (var i = 0; i < data.item.artists.length; i++) {
-							tempArtists += data.item.artists[i].name;
-							if (i != data.item.artists.length - 1) {
-								tempArtists += ", ";
+						if (data.item.artists) {
+							for (var i = 0; i < data.item.artists.length; i++) {
+								tempArtists += data.item.artists[i].name;
+								if (i != data.item.artists.length - 1) {
+									tempArtists += ", ";
+								}
 							}
+						} else if (data.item.show) {
+							tempArtists = data.item.show.name;
 						}
 						spotifyHandler.dom.artist.innerHTML = stripTags(tempArtists);
 						if (data.context != null) {
@@ -227,10 +233,11 @@ var spotifyHandler = {
 						{
 							navigator.mediaSession.playbackState = "playing";
 							var tempArtwork = [];
-							for (var i = 0; i < data.item.album.images.length; i++) {
+							var mediaImages = data.item.album ? data.item.album.images : (data.item.images || []);
+							for (var i = 0; i < mediaImages.length; i++) {
 								tempArtwork[i] = {
-									sizes: data.item.album.images[i].width+"x"+data.item.album.images[i].height,
-									src: data.item.album.images[i].url,
+									sizes: mediaImages[i].width+"x"+mediaImages[i].height,
+									src: mediaImages[i].url,
 									type: "image/jpeg"
 								};
 							}
@@ -329,6 +336,20 @@ var spotifyHandler = {
 							spotifyHandler.dom.repeatButton.className = "material-icons side-button";
 							break;
 					}
+				}
+				else if (data != undefined && typeof data != "string" && data.is_playing && data.item == null) {
+					// Playing something (likely a podcast) but item details not available in dev mode
+					spotifyHandler.rateLimitBackoff = 30000;
+					spotifyHandler.lastPlaybackStatus = data;
+					if (pageHandler.shown == "discoverpage") {
+						pageHandler.showPage("playerpage");
+					}
+					spotifyHandler.dom.title.innerHTML = data.currently_playing_type === "episode" ? "Podcast playing" : "Playing";
+					spotifyHandler.dom.artist.innerHTML = "Details not available in dev mode";
+					spotifyHandler.dom.artwork.src = "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7";
+					spotifyHandler.dom.playPauseButton.title = "Pause";
+					spotifyHandler.dom.playPauseButton.innerHTML = "&#xe035;";
+					spotifyHandler.acquireWakeLock();
 				}
 				else {
 					if (spotifyHandler.lastTrackId != "null2") {
@@ -567,7 +588,7 @@ var spotifyHandler = {
 		if (showAddToQueue && isValidSpotifyUri(tempTrack.uri)) {
 			addToQueueBtn = '<button class="queue-add-btn material-icons" onclick="event.stopPropagation(); spotifyHandler.addToQueue(\''+tempTrack.uri+'\', this);" title="Add to queue">&#xe05f;</button>';
 		}
-		var imgUrl = (doCover && tempTrack.album && tempTrack.album.images.length > 0) ? sanitizeImageUrl(tempTrack.album.images.pop().url) : 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7';
+		var imgUrl = doCover ? sanitizeImageUrl((tempTrack.album && tempTrack.album.images && tempTrack.album.images.length > 0) ? tempTrack.album.images[tempTrack.album.images.length - 1].url : (tempTrack.images && tempTrack.images.length > 0) ? tempTrack.images[tempTrack.images.length - 1].url : null) : 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7';
 		trackElem.innerHTML = (doCover ? '<div class="queue-item-cover"><img src="'+imgUrl+'"></div>': '<div class="queue-item-cover"><span>'+(tempTrack.disc_number > 1 ? tempTrack.disc_number+'-' : '')+tempTrack.track_number+'</span></div>')+'<div class="queue-item-metadata"><div class="queue-item-name">'+stripTags(tempTrack.name)+'</div><div class="queue-item-artist">'+tempArtists.join(', ')+'</div></div>'+addToQueueBtn;
 		return (trackElem);
 	},
