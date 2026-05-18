@@ -658,10 +658,12 @@ var spotifyHandler = {
 			device_id: deviceId
 		}, function(err, data) {
 			if (err) {
-				console.error(err);
-				alert("Could not start playback due to an error ("+err.status+"). You'll have to start it yourself, on the device you clicked on.");
+				// Play might fail for podcasts in dev mode, but device transfer still works
+				// Don't alert, just start fast polling to pick up the state
 			}
 		});
+		pageHandler.showPage("playerpage");
+		spotifyHandler.startFastPoll();
 	},
 
 	fetchingPlaylists: false,
