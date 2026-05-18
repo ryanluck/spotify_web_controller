@@ -1016,11 +1016,11 @@ h2 {
 }
 
 #playerpage.idle.fullscreen-art #below-art-holder {
-	transform: translateY(calc(100% - 150px));
+	transform: translateY(calc(100% - 200px));
 }
 
 #playerpage.idle.fullscreen-art.idle-compact #below-art-holder {
-	transform: translateY(calc(100% - 110px));
+	transform: translateY(calc(100% - 150px));
 }
 
 #playerpage.idle:not(.fullscreen-art) #below-art-holder {
