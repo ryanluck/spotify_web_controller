@@ -885,38 +885,50 @@ var spotifyHandler = {
 		});
 
 		// Display mode
-		var modeStandard = document.getElementById("mode-standard");
+		var modeCompact = document.getElementById("mode-compact");
+		var modeSideBySide = document.getElementById("mode-sidebyside");
 		var modeFullscreen = document.getElementById("mode-fullscreen");
-		var currentMode = localStorage.getItem("spotify_display_mode") || "fullscreen";
-		if (currentMode === "fullscreen") {
-			modeFullscreen.classList.add("active");
-			modeStandard.classList.remove("active");
-			spotifyHandler.dom.playerPage.classList.add("fullscreen-art");
-		}
-		modeStandard.addEventListener("click", function() {
-			localStorage.setItem("spotify_display_mode", "standard");
-			modeStandard.classList.add("active");
-			modeFullscreen.classList.remove("active");
-			spotifyHandler.dom.playerPage.classList.remove("fullscreen-art");
-			spotifyHandler.dom.playerPage.style.backgroundImage = "";
-			darkenSection.style.display = "none";
-		});
-		modeFullscreen.addEventListener("click", function() {
-			localStorage.setItem("spotify_display_mode", "fullscreen");
-			modeFullscreen.classList.add("active");
-			modeStandard.classList.remove("active");
-			spotifyHandler.dom.playerPage.classList.add("fullscreen-art");
-			if (spotifyHandler.dom.artwork.src && spotifyHandler.dom.artwork.src.indexOf("data:image") !== 0) {
-				spotifyHandler.dom.playerPage.style.backgroundImage = "url(" + spotifyHandler.dom.artwork.src + ")";
-			}
-			darkenSection.style.display = "block";
-		});
-
-		// Darken background toggle
 		var darkenCheckbox = document.getElementById("enable-darken");
 		var darkenSection = document.getElementById("darken-section");
+		var currentMode = localStorage.getItem("spotify_display_mode") || "fullscreen";
+		// Migrate old "standard" setting
+		if (currentMode === "standard") currentMode = "compact";
+
+		function setDisplayMode(mode) {
+			spotifyHandler.dom.playerPage.classList.remove("fullscreen-art", "side-by-side");
+			document.body.classList.remove("mode-sidebyside");
+			modeCompact.classList.remove("active");
+			modeSideBySide.classList.remove("active");
+			modeFullscreen.classList.remove("active");
+			spotifyHandler.dom.playerPage.style.backgroundImage = "";
+
+			if (mode === "fullscreen") {
+				spotifyHandler.dom.playerPage.classList.add("fullscreen-art");
+				modeFullscreen.classList.add("active");
+				if (spotifyHandler.dom.artwork.src && spotifyHandler.dom.artwork.src.indexOf("data:image") !== 0) {
+					spotifyHandler.dom.playerPage.style.backgroundImage = "url(" + spotifyHandler.dom.artwork.src + ")";
+				}
+				darkenSection.style.display = "block";
+			} else if (mode === "sidebyside") {
+				spotifyHandler.dom.playerPage.classList.add("side-by-side");
+				document.body.classList.add("mode-sidebyside");
+				modeSideBySide.classList.add("active");
+				darkenSection.style.display = "none";
+			} else {
+				modeCompact.classList.add("active");
+				darkenSection.style.display = "none";
+			}
+			localStorage.setItem("spotify_display_mode", mode);
+		}
+
+		setDisplayMode(currentMode);
+
+		modeCompact.addEventListener("click", function() { setDisplayMode("compact"); });
+		modeSideBySide.addEventListener("click", function() { setDisplayMode("sidebyside"); });
+		modeFullscreen.addEventListener("click", function() { setDisplayMode("fullscreen"); });
+
+		// Darken background toggle
 		darkenCheckbox.checked = localStorage.getItem("spotify_darken_bg") === "true";
-		darkenSection.style.display = (currentMode === "fullscreen") ? "block" : "none";
 		if (darkenCheckbox.checked) {
 			spotifyHandler.dom.playerPage.classList.add("darken-bg");
 		}

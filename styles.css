@@ -990,6 +990,89 @@ h2 {
 	height: 50px;
 }
 
+/* Side by Side mode */
+#playerpage.side-by-side {
+	flex-direction: row;
+	align-items: stretch;
+}
+
+#playerpage.side-by-side:not(.active) {
+	display: none;
+}
+
+#playerpage.side-by-side.active {
+	display: flex;
+}
+
+#playerpage.side-by-side #topbar {
+	position: absolute;
+	top: 0;
+	right: 0;
+	left: 50%;
+	height: auto;
+	padding: 8px 12px;
+	z-index: 5;
+	display: none;
+}
+
+#playerpage.side-by-side.active #topbar {
+	display: block;
+}
+
+#playerpage.side-by-side #art-holder {
+	width: 50%;
+	height: 100vh;
+	margin: 0;
+	padding: 12px;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	flex-shrink: 0;
+	overflow: hidden;
+	background: transparent;
+	box-sizing: border-box;
+}
+
+#playerpage.side-by-side #artwork {
+	width: 100% !important;
+	height: 100%;
+	max-width: 100%;
+	object-fit: contain;
+	background: transparent;
+}
+
+#playerpage.side-by-side #below-art-holder {
+	width: 50%;
+	position: relative;
+	display: flex;
+	flex-direction: column;
+	justify-content: center;
+	padding: 60px 32px 24px 32px;
+	height: 100vh;
+	box-sizing: border-box;
+	gap: 0;
+}
+
+#playerpage.side-by-side #metadata-holder-holder {
+	margin-bottom: 4px;
+}
+
+#playerpage.side-by-side #seekbar-holder {
+	margin-bottom: 4px;
+}
+
+#playerpage.side-by-side #title {
+	font-size: 28px;
+}
+
+#playerpage.side-by-side #artist {
+	font-size: 22px;
+}
+
+#playerpage.side-by-side #controls-holder {
+	margin-top: 8px;
+}
+
 /* Idle mode - hide controls */
 #playerpage.idle #topbar {
 	opacity: 0;
@@ -1051,3 +1134,25 @@ h2 {
 #playerpage #below-art-holder {
 	transition: transform 0.3s ease;
 }
+
+/* Side by Side idle - just fade controls, no movement */
+#playerpage.idle.side-by-side #below-art-holder {
+	transform: none !important;
+}
+
+#playerpage.idle.side-by-side #art-holder {
+	transform: none !important;
+}
+
+#playerpage.idle.side-by-side.idle-compact #seekbar-holder {
+	opacity: 0;
+}
+
+#playerpage.side-by-side #bottombar {
+	position: absolute;
+	bottom: 24px;
+	left: 32px;
+	right: 32px;
+}
+
+/* Side by side overlay pages - full width for now */
