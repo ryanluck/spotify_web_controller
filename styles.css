@@ -253,7 +253,7 @@ p {
 }
 
 #seekbar-holder {
-
+	transition: opacity 0.5s ease;
 }
 
 /* seekbar */
@@ -1051,6 +1051,7 @@ h2 {
 	height: 100vh;
 	box-sizing: border-box;
 	gap: 0;
+	transition: transform 0.5s ease;
 }
 
 #playerpage.side-by-side #metadata-holder-holder {
@@ -1135,9 +1136,15 @@ h2 {
 	transition: transform 0.3s ease;
 }
 
-/* Side by Side idle - just fade controls, no movement */
+/* Side by Side idle - slide metadata to bottom */
 #playerpage.idle.side-by-side #below-art-holder {
-	transform: none !important;
+	transform: translateY(calc(50% - 80px));
+}
+
+#playerpage.idle.side-by-side #bottombar {
+	opacity: 0;
+	pointer-events: none;
+	transition: opacity 0.5s ease;
 }
 
 #playerpage.idle.side-by-side #art-holder {
@@ -1146,6 +1153,10 @@ h2 {
 
 #playerpage.idle.side-by-side.idle-compact #seekbar-holder {
 	opacity: 0;
+}
+
+#playerpage.idle.side-by-side.idle-compact #below-art-holder {
+	transform: translateY(calc(50% - 30px));
 }
 
 #playerpage.side-by-side #bottombar {
